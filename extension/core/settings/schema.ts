@@ -53,7 +53,7 @@ export const hotkeySettingsSchema = z.object({
   bindings: z.record(z.string(), z.string()).default({
     "global:toggle-mute": "Alt+M",
     "global:toggle-mute-when-blurred": "Alt+Shift+M",
-    "global:open-options": "Alt+Shift+C",
+    "global:open-options": "Alt+I",
   }),
 });
 
