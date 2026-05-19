@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { announce } from "@/shared/a11y/announcer";
+import { useConfirmAction } from "@/shared/hooks/use-confirm-action";
 import {
   mutedItem,
   muteWhenBlurredItem,
@@ -41,26 +42,42 @@ export function GeneralTab() {
   const [activeTheme, setActiveTheme] = useState(DEFAULT_THEME_ID);
   const [soundEngineEnabled, setSoundEngineEnabled] = useState(true);
   const [showWhatsNewOnUpdate, setShowWhatsNewOnUpdate] = useState(true);
-  const [confirmReset, setConfirmReset] = useState(false);
-  const [confirmGeneralReset, setConfirmGeneralReset] = useState(false);
-  const confirmResetRef = useRef<HTMLButtonElement>(null);
-  const confirmGeneralResetRef = useRef<HTMLButtonElement>(null);
+  const generalResetRef = useRef<HTMLButtonElement>(null);
+  const factoryResetRef = useRef<HTMLButtonElement>(null);
 
-  // Auto-cancel factory reset confirmation after 5 seconds, focus confirm button
-  useEffect(() => {
-    if (!confirmReset) return;
-    requestAnimationFrame(() => confirmResetRef.current?.focus());
-    const timer = setTimeout(() => setConfirmReset(false), 5000);
-    return () => clearTimeout(timer);
-  }, [confirmReset]);
+  const generalReset = useConfirmAction(generalResetRef, async () => {
+    setMuted(false);
+    setMuteWhenBlurred(false);
+    setVolume(80);
+    setActiveTheme(DEFAULT_THEME_ID);
+    setSoundEngineEnabled(true);
+    setShowWhatsNewOnUpdate(true);
+    await Promise.all([
+      mutedItem.setValue(false),
+      muteWhenBlurredItem.setValue(false),
+      masterVolumeItem.setValue(80),
+      activeThemeItem.setValue(DEFAULT_THEME_ID),
+      enabledModulesItem.setValue(["sound-engine"]),
+      showWhatsNewOnUpdateItem.setValue(true),
+    ]);
+    announce("General settings reset to defaults", "polite");
+    sendLog("warn", "General settings reset to defaults", { source: "options" });
+  });
 
-  // Same auto-cancel + focus pattern for the lighter "Reset General Settings".
-  useEffect(() => {
-    if (!confirmGeneralReset) return;
-    requestAnimationFrame(() => confirmGeneralResetRef.current?.focus());
-    const timer = setTimeout(() => setConfirmGeneralReset(false), 5000);
-    return () => clearTimeout(timer);
-  }, [confirmGeneralReset]);
+  const factoryReset = useConfirmAction(factoryResetRef, async () => {
+    await browser.storage.local.clear();
+    setMuted(false);
+    setMuteWhenBlurred(false);
+    setVolume(80);
+    setActiveTheme(DEFAULT_THEME_ID);
+    setSoundEngineEnabled(true);
+    setShowWhatsNewOnUpdate(true);
+    announce(
+      "All settings reset to factory defaults. Reload the extension for full effect.",
+      "assertive",
+    );
+    sendLog("warn", "Factory reset: all settings cleared", { source: "options" });
+  });
 
   // Load settings on mount
   useEffect(() => {
@@ -276,77 +293,34 @@ export function GeneralTab() {
         </div>
       </section>
 
-      {/* Reset General Settings — two-step confirm to prevent accidental */}
-      {/* clobber of user's volume / theme / module choices. Mirrors the   */}
-      {/* Factory Reset pattern below.                                      */}
-      {!confirmGeneralReset ? (
+      {!generalReset.pending ? (
         <Button
           variant="outline"
-          onClick={() => {
-            setConfirmGeneralReset(true);
-            announce("Are you sure? Press Reset General Settings again to confirm.", "assertive");
-          }}
+          onClick={() =>
+            generalReset.requestConfirm(
+              "Are you sure? Press Reset General Settings again to confirm.",
+            )
+          }
         >
           Reset General Settings
         </Button>
       ) : (
-        <Button
-          ref={confirmGeneralResetRef}
-          variant="destructive"
-          onClick={async () => {
-            setMuted(false);
-            setMuteWhenBlurred(false);
-            setVolume(80);
-            setActiveTheme(DEFAULT_THEME_ID);
-            setSoundEngineEnabled(true);
-            setShowWhatsNewOnUpdate(true);
-            await Promise.all([
-              mutedItem.setValue(false),
-              muteWhenBlurredItem.setValue(false),
-              masterVolumeItem.setValue(80),
-              activeThemeItem.setValue(DEFAULT_THEME_ID),
-              enabledModulesItem.setValue(["sound-engine"]),
-              showWhatsNewOnUpdateItem.setValue(true),
-            ]);
-            announce("General settings reset to defaults", "polite");
-            sendLog("warn", "General settings reset to defaults", { source: "options" });
-            setConfirmGeneralReset(false);
-          }}
-        >
+        <Button ref={generalResetRef} variant="destructive" onClick={generalReset.confirm}>
           Confirm Reset General Settings
         </Button>
       )}
 
-      {!confirmReset ? (
+      {!factoryReset.pending ? (
         <Button
           variant="outline"
-          onClick={() => {
-            setConfirmReset(true);
-            announce("Are you sure? Press Factory Reset again to confirm.", "assertive");
-          }}
+          onClick={() =>
+            factoryReset.requestConfirm("Are you sure? Press Factory Reset again to confirm.")
+          }
         >
           Reset All Settings (Factory Reset)
         </Button>
       ) : (
-        <Button
-          ref={confirmResetRef}
-          variant="destructive"
-          onClick={async () => {
-            await browser.storage.local.clear();
-            setMuted(false);
-            setMuteWhenBlurred(false);
-            setVolume(80);
-            setActiveTheme(DEFAULT_THEME_ID);
-            setSoundEngineEnabled(true);
-            setShowWhatsNewOnUpdate(true);
-            announce(
-              "All settings reset to factory defaults. Reload the extension for full effect.",
-              "assertive",
-            );
-            sendLog("warn", "Factory reset: all settings cleared", { source: "options" });
-            setConfirmReset(false);
-          }}
-        >
+        <Button ref={factoryResetRef} variant="destructive" onClick={factoryReset.confirm}>
           Confirm Factory Reset
         </Button>
       )}

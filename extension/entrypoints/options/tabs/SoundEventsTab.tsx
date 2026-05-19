@@ -33,6 +33,7 @@ import { Label } from "@/components/ui/label";
 import { getEventDefaults } from "@/config/events";
 import { Play } from "lucide-react";
 import { announce } from "@/shared/a11y/announcer";
+import { useConfirmAction } from "@/shared/hooks/use-confirm-action";
 import { pickOptionalPermissions, requestPermissions } from "@/shared/permissions/request";
 import { EVENT_REGISTRY } from "@/modules/sound-engine/event-registry";
 import { eventConfigItem, type StoredEventConfig } from "@/core/settings/items";
@@ -110,21 +111,26 @@ export function SoundEventsTab() {
   useEffect(() => {
     configsRef.current = configs;
   }, [configs]);
-  const [confirmReset, setConfirmReset] = useState(false);
-  const confirmResetRef = useRef<HTMLButtonElement>(null);
+  const eventsResetRef = useRef<HTMLButtonElement>(null);
+  const eventsReset = useConfirmAction(eventsResetRef, async () => {
+    const defaults: Record<string, StoredEventConfig> = {};
+    for (const event of PLATFORM_EVENTS) {
+      defaults[event.id] = {
+        enabled: getEventDefaults(event.id).enabled,
+        volume: 100,
+        pitch: 1.0,
+      };
+    }
+    await Promise.all(PLATFORM_EVENTS.map((e) => eventConfigItem(e.id).removeValue()));
+    setConfigs(defaults);
+    announce("All sound event settings reset to defaults", "polite");
+    sendLog("warn", "Sound event settings reset to defaults", { source: "options" });
+  });
+
   // Debounced result count for the screen-reader live-region (see render below).
   // Sighted users see the live count update on every keystroke; SR users hear
   // ONE announcement after they pause typing for 250 ms.
   const [announcedMatchCount, setAnnouncedMatchCount] = useState<number | null>(null);
-
-  // Auto-cancel reset confirmation after 5 seconds, focus the confirm button.
-  // Same two-step pattern as the destructive Resets in the other tabs.
-  useEffect(() => {
-    if (!confirmReset) return;
-    requestAnimationFrame(() => confirmResetRef.current?.focus());
-    const timer = setTimeout(() => setConfirmReset(false), 5000);
-    return () => clearTimeout(timer);
-  }, [confirmReset]);
 
   // Load per-event configs from storage
   useEffect(() => {
@@ -483,41 +489,19 @@ export function SoundEventsTab() {
         <h3 id="sound-events-reset-heading" className="sr-only">
           Reset
         </h3>
-        {!confirmReset ? (
+        {!eventsReset.pending ? (
           <Button
             variant="outline"
-            onClick={() => {
-              setConfirmReset(true);
-              announce(
+            onClick={() =>
+              eventsReset.requestConfirm(
                 "Are you sure? Press Reset Sound Event Settings again to confirm.",
-                "assertive",
-              );
-            }}
+              )
+            }
           >
             Reset Sound Event Settings
           </Button>
         ) : (
-          <Button
-            ref={confirmResetRef}
-            variant="destructive"
-            onClick={async () => {
-              const defaults: Record<string, StoredEventConfig> = {};
-              for (const event of PLATFORM_EVENTS) {
-                defaults[event.id] = {
-                  enabled: getEventDefaults(event.id).enabled,
-                  volume: 100,
-                  pitch: 1.0,
-                };
-              }
-              await Promise.all(
-                PLATFORM_EVENTS.map((e) => eventConfigItem(e.id).removeValue()),
-              );
-              setConfigs(defaults);
-              announce("All sound event settings reset to defaults", "polite");
-              sendLog("warn", "Sound event settings reset to defaults", { source: "options" });
-              setConfirmReset(false);
-            }}
-          >
+          <Button ref={eventsResetRef} variant="destructive" onClick={eventsReset.confirm}>
             Confirm Reset Sound Event Settings
           </Button>
         )}

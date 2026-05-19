@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { sendLog } from "@/core/messaging/send";
+import { sendLog, sendExportLogs, sendClearLogs } from "@/core/messaging/send";
 import {
   Select,
   SelectContent,
@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { announce } from "@/shared/a11y/announcer";
+import { useConfirmAction } from "@/shared/hooks/use-confirm-action";
 import { logLevelItem, logStreamEnabledItem, logServerUrlItem } from "@/core/settings/items";
 
 /** Log level options matching LogLevel enum values. */
@@ -42,33 +43,43 @@ export function LoggingTab() {
   const [logLevel, setLogLevel] = useState("1");
   const [logServerUrl, setLogServerUrl] = useState("ws://localhost:8089");
   const [logStreamEnabled, setLogStreamEnabled] = useState(false);
-  const [confirmClear, setConfirmClear] = useState(false);
-  const [confirmReset, setConfirmReset] = useState(false);
   // Validation only fires after the user has interacted with the URL field —
   // avoids flickering aria-invalid mid-typing while a partial "ws://localh"
   // looks malformed.
   const [urlTouched, setUrlTouched] = useState(false);
-  const confirmClearRef = useRef<HTMLButtonElement>(null);
-  const confirmResetRef = useRef<HTMLButtonElement>(null);
 
   const urlInvalid =
     urlTouched && logStreamEnabled && logServerUrl.length > 0 && !isValidWebSocketUrl(logServerUrl);
 
-  // Auto-cancel Clear Logs confirmation after 5 seconds, focus confirm button
-  useEffect(() => {
-    if (!confirmClear) return;
-    requestAnimationFrame(() => confirmClearRef.current?.focus());
-    const timer = setTimeout(() => setConfirmClear(false), 5000);
-    return () => clearTimeout(timer);
-  }, [confirmClear]);
+  const clearLogsRef = useRef<HTMLButtonElement>(null);
+  const loggingResetRef = useRef<HTMLButtonElement>(null);
 
-  // Same auto-cancel + focus pattern for Reset Logging Settings
-  useEffect(() => {
-    if (!confirmReset) return;
-    requestAnimationFrame(() => confirmResetRef.current?.focus());
-    const timer = setTimeout(() => setConfirmReset(false), 5000);
-    return () => clearTimeout(timer);
-  }, [confirmReset]);
+  const clearLogs = useConfirmAction(clearLogsRef, async () => {
+    try {
+      const response = await sendClearLogs();
+      if (response.success) {
+        announce("All stored logs cleared", "polite");
+        sendLog("warn", "Logs cleared from IndexedDB", { source: "options" });
+      } else {
+        announce("Failed to clear logs", "assertive");
+      }
+    } catch {
+      announce("Failed to clear logs. The extension may need to be reloaded.", "assertive");
+    }
+  });
+
+  const loggingReset = useConfirmAction(loggingResetRef, async () => {
+    setLogLevel("1");
+    setLogServerUrl("ws://localhost:8089");
+    setLogStreamEnabled(false);
+    await Promise.all([
+      logLevelItem.setValue(1),
+      logServerUrlItem.setValue("ws://localhost:8089"),
+      logStreamEnabledItem.setValue(false),
+    ]);
+    announce("Logging settings reset to defaults", "polite");
+    sendLog("warn", "Logging settings reset to defaults", { source: "options" });
+  });
 
   // Load settings on mount
   useEffect(() => {
@@ -124,10 +135,7 @@ export function LoggingTab() {
   const handleExport = async (format: "json" | "csv" | "html") => {
     announce(`Exporting logs as ${format.toUpperCase()}...`, "polite");
     try {
-      const response = (await browser.runtime.sendMessage({
-        type: "EXPORT_LOGS",
-        format,
-      })) as { success: boolean; data?: string; error?: string };
+      const response = await sendExportLogs(format);
 
       if (!response.success || !response.data) {
         announce(`Export failed: ${response.error ?? "unknown error"}`, "assertive");
@@ -141,7 +149,6 @@ export function LoggingTab() {
       a.href = url;
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
       a.download = `oriole-logs-${timestamp}.${format}`;
-      // Append to DOM for Firefox compatibility, then clean up
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -254,40 +261,21 @@ export function LoggingTab() {
           <Button variant="outline" onClick={() => handleExport("html")}>
             Export HTML
           </Button>
-          {!confirmClear ? (
+          {!clearLogs.pending ? (
             <Button
               variant="outline"
-              onClick={() => {
-                setConfirmClear(true);
-                announce("Are you sure? Press Clear Logs again to confirm.", "assertive");
-              }}
+              onClick={() =>
+                clearLogs.requestConfirm("Are you sure? Press Clear Logs again to confirm.")
+              }
             >
               Clear Logs
             </Button>
           ) : (
             <Button
-              ref={confirmClearRef}
+              ref={clearLogsRef}
               variant="outline"
               className="border-destructive text-destructive"
-              onClick={async () => {
-                try {
-                  const response = (await browser.runtime.sendMessage({
-                    type: "CLEAR_LOGS",
-                  })) as { success: boolean };
-                  if (response.success) {
-                    announce("All stored logs cleared", "polite");
-                    sendLog("warn", "Logs cleared from IndexedDB", { source: "options" });
-                  } else {
-                    announce("Failed to clear logs", "assertive");
-                  }
-                } catch {
-                  announce(
-                    "Failed to clear logs. The extension may need to be reloaded.",
-                    "assertive",
-                  );
-                }
-                setConfirmClear(false);
-              }}
+              onClick={clearLogs.confirm}
             >
               Confirm Clear Logs
             </Button>
@@ -303,34 +291,19 @@ export function LoggingTab() {
         <h3 id="logging-reset-heading" className="sr-only">
           Reset
         </h3>
-        {!confirmReset ? (
+        {!loggingReset.pending ? (
           <Button
             variant="outline"
-            onClick={() => {
-              setConfirmReset(true);
-              announce("Are you sure? Press Reset Logging Settings again to confirm.", "assertive");
-            }}
+            onClick={() =>
+              loggingReset.requestConfirm(
+                "Are you sure? Press Reset Logging Settings again to confirm.",
+              )
+            }
           >
             Reset Logging Settings
           </Button>
         ) : (
-          <Button
-            ref={confirmResetRef}
-            variant="destructive"
-            onClick={async () => {
-              setLogLevel("1");
-              setLogServerUrl("ws://localhost:8089");
-              setLogStreamEnabled(false);
-              await Promise.all([
-                logLevelItem.setValue(1),
-                logServerUrlItem.setValue("ws://localhost:8089"),
-                logStreamEnabledItem.setValue(false),
-              ]);
-              announce("Logging settings reset to defaults", "polite");
-              sendLog("warn", "Logging settings reset to defaults", { source: "options" });
-              setConfirmReset(false);
-            }}
-          >
+          <Button ref={loggingResetRef} variant="destructive" onClick={loggingReset.confirm}>
             Confirm Reset Logging Settings
           </Button>
         )}

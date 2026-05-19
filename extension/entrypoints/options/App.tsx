@@ -17,8 +17,8 @@ import hotkeys from "hotkeys-js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { announce } from "@/shared/a11y/announcer";
 import { focusFirst } from "@/shared/a11y/focus";
-import { BUILT_IN_THEMES } from "@/config/themes";
-import { activeThemeItem, onboardingSeenItem } from "@/core/settings/items";
+import { useCycleTheme } from "@/shared/hooks/use-cycle-theme";
+import { onboardingSeenItem } from "@/core/settings/items";
 import { GeneralTab } from "./tabs/GeneralTab.js";
 import { SoundEventsTab } from "./tabs/SoundEventsTab.js";
 import { ThemesTab } from "./tabs/ThemesTab.js";
@@ -101,15 +101,7 @@ export default function App() {
     });
   }, []);
 
-  /** Cycle through available themes. */
-  const handleCycleTheme = useCallback(async () => {
-    const current = await activeThemeItem.getValue();
-    const themeIds = BUILT_IN_THEMES.map((t) => t.id);
-    const nextIndex = (themeIds.indexOf(current) + 1) % themeIds.length;
-    const next = themeIds[nextIndex]!;
-    await activeThemeItem.setValue(next);
-    announce(`Theme changed to ${next}`, "polite");
-  }, []);
+  const handleCycleTheme = useCycleTheme();
 
   // Register local keyboard shortcuts via hotkeys-js.
   //

@@ -19,6 +19,7 @@ import type { OrioleModule, ModuleContext } from "../../core/module-system/types
 import type { AudioBackend } from "./audio-backends/types.js";
 import { EventEngine, BROWSER_EVENT_CHANNEL, type BrowserEventMessage } from "./event-engine.js";
 import { ThemeManager } from "./theme-manager.js";
+import { loadBuiltInThemes } from "./theme-loader.js";
 import { EVENT_REGISTRY, EVENT_REGISTRY_BY_ID } from "./event-registry.js";
 import { createWindowFocusEvents } from "./windows-focus-router.js";
 import { CooldownGate } from "./cooldown-gate.js";
@@ -176,32 +177,7 @@ export class SoundEngineModule implements OrioleModule {
 
     // 2. Set up the theme manager and load the default theme
     this.themeManager = new ThemeManager();
-
-    // Load all built-in themes from the theme registry
-    for (const theme of BUILT_IN_THEMES) {
-      try {
-        const themeUrl = getAssetURL(`${theme.path}/theme.json`);
-        const response = await fetch(themeUrl);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status} loading theme: ${themeUrl}`);
-        }
-        const manifest = await response.json();
-
-        const basePath = getAssetURL(theme.path);
-        const result = this.themeManager.loadTheme(theme.id, manifest, basePath);
-
-        if (result.success) {
-          logger.info(`Theme loaded: ${theme.id}`);
-        } else {
-          logger.error(`Failed to validate ${theme.id} theme`, { errors: result.errors });
-        }
-      } catch (error) {
-        logger.error(
-          `Failed to load ${theme.id} theme`,
-          error instanceof Error ? error : undefined,
-        );
-      }
-    }
+    await loadBuiltInThemes(this.themeManager, logger);
 
     // Set active theme from user settings (falls back to config default)
     const activeTheme =
@@ -266,12 +242,33 @@ export class SoundEngineModule implements OrioleModule {
     if (!this.context || !this.backend) {
       throw new Error("Module not initialized.");
     }
-    const { logger, messageBus, settings } = this.context;
+    const { logger, messageBus } = this.context;
 
-    // Warm the in-memory caches BEFORE subscribing so the very first
-    // event arriving through the message bus reads the user's actual
-    // mute / per-event configuration instead of defaults. Reads run
-    // in parallel via Promise.all to keep cold-start latency low.
+    await this.warmSettingsCaches();
+    this.registerSettingsWatchers();
+
+    // Subscribe LAST so the cache is already warm when events start
+    // arriving. Events that fire before activate() returns would
+    // otherwise see empty caches and use defaults instead of user
+    // overrides.
+    this.unsubscribe = messageBus.subscribe(BROWSER_EVENT_CHANNEL, (data: unknown) => {
+      const message = data as BrowserEventMessage;
+      this.handleBrowserEvent(message).catch((error: unknown) => {
+        logger.error("Failed to handle browser event", error instanceof Error ? error : undefined);
+      });
+    });
+
+    logger.info("Sound engine activated");
+  }
+
+  /**
+   * Populate in-memory caches from storage so the first event arriving
+   * via the message bus sees the user's actual settings. Reads run in
+   * parallel to keep cold-start latency low.
+   */
+  private async warmSettingsCaches(): Promise<void> {
+    const { settings } = this.context!;
+
     const [mutedValue, muteWhenBlurredValue, masterVolume] = await Promise.all([
       settings.get<boolean>("general.muted"),
       settings.get<boolean>("general.muteWhenBlurred"),
@@ -287,11 +284,17 @@ export class SoundEngineModule implements OrioleModule {
       }),
     );
 
-    await this.backend.setGlobalVolume((masterVolume ?? 80) / 100);
+    await this.backend!.setGlobalVolume((masterVolume ?? 80) / 100);
+  }
 
-    // Watch for live settings changes. All async backend calls have
-    // .catch() so a broken transport cannot surface as an unhandled
-    // rejection.
+  /**
+   * Register settings.watch callbacks that keep in-memory caches and
+   * the audio backend in sync with live storage changes. Unsubscribe
+   * handles are pushed to `this.unwatchers` for teardown.
+   */
+  private registerSettingsWatchers(): void {
+    const { logger, settings } = this.context!;
+
     this.unwatchers.push(
       settings.watch("general.masterVolume", (newValue) => {
         const vol = (newValue as number) ?? 80;
@@ -302,7 +305,7 @@ export class SoundEngineModule implements OrioleModule {
       }),
       settings.watch("general.muted", (newValue) => {
         const muted = (newValue as boolean) ?? false;
-        this.muted = muted; // keep the hot-path cache in sync
+        this.muted = muted;
         if (muted) {
           this.backend?.stopAll().catch((e: unknown) => {
             logger.error("Failed to stop sounds", e instanceof Error ? e : undefined);
@@ -333,10 +336,6 @@ export class SoundEngineModule implements OrioleModule {
       }),
     );
 
-    // Per-event config watchers keep eventConfigs fresh. When a user
-    // resets a setting to its default, browser.storage.local emits an
-    // onChanged event with `newValue === undefined` — delete the cache
-    // entry so the read falls back to `getEventDefaults` again.
     for (const event of EVENT_REGISTRY) {
       this.unwatchers.push(
         settings.watch(`sounds.events.${event.id}`, (newValue) => {
@@ -348,19 +347,6 @@ export class SoundEngineModule implements OrioleModule {
         }),
       );
     }
-
-    // Subscribe LAST so the cache is already warm when events start
-    // arriving. Events that fire before activate() returns would
-    // otherwise see empty caches and use defaults instead of user
-    // overrides.
-    this.unsubscribe = messageBus.subscribe(BROWSER_EVENT_CHANNEL, (data: unknown) => {
-      const message = data as BrowserEventMessage;
-      this.handleBrowserEvent(message).catch((error: unknown) => {
-        logger.error("Failed to handle browser event", error instanceof Error ? error : undefined);
-      });
-    });
-
-    logger.info("Sound engine activated");
   }
 
   /** Unsubscribe from browser-event messages and stop all playing sounds. */

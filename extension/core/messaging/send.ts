@@ -8,7 +8,13 @@
  * so callers don't need to construct raw message objects.
  */
 
-import type { LogMessage, PreviewSoundMessage, ExtensionResponse } from "./types.js";
+import type {
+  LogMessage,
+  PreviewSoundMessage,
+  ExportLogsMessage,
+  ClearLogsMessage,
+  ExtensionResponse,
+} from "./types.js";
 
 /**
  * Send a log message to the background script's logger.
@@ -52,6 +58,49 @@ export async function sendPreviewSound(eventId: string): Promise<ExtensionRespon
       type: "PREVIEW_SOUND",
       eventId,
     } satisfies PreviewSoundMessage);
+    return response as ExtensionResponse;
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+/**
+ * Request the background script to export stored logs in the given format.
+ *
+ * The background queries IndexedDB and returns the formatted data as a string.
+ * The caller is responsible for turning the string into a downloadable file.
+ *
+ * @param format - Output format: "json", "csv", or "html".
+ * @returns Response with `data` containing the formatted log output on success.
+ */
+export async function sendExportLogs(
+  format: ExportLogsMessage["format"],
+): Promise<ExtensionResponse> {
+  try {
+    const response = await browser.runtime.sendMessage({
+      type: "EXPORT_LOGS",
+      format,
+    } satisfies ExportLogsMessage);
+    return response as ExtensionResponse;
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+/**
+ * Request the background script to clear all stored logs from IndexedDB.
+ */
+export async function sendClearLogs(): Promise<ExtensionResponse> {
+  try {
+    const response = await browser.runtime.sendMessage({
+      type: "CLEAR_LOGS",
+    } satisfies ClearLogsMessage);
     return response as ExtensionResponse;
   } catch (error) {
     return {

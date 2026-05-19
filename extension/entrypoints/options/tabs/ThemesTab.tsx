@@ -20,23 +20,23 @@ import {
 } from "@/components/ui/select";
 import { announce } from "@/shared/a11y/announcer";
 import { sendLog } from "@/core/messaging/send";
+import { useConfirmAction } from "@/shared/hooks/use-confirm-action";
 import { BUILT_IN_THEMES, DEFAULT_THEME_ID } from "@/config/themes";
 import { activeThemeItem } from "@/core/settings/items";
 
 /** Themes settings tab — theme selector, active theme info, and custom theme import placeholder. */
 export function ThemesTab() {
   const [activeTheme, setActiveTheme] = useState(DEFAULT_THEME_ID);
-  const [confirmReset, setConfirmReset] = useState(false);
-  const confirmResetRef = useRef<HTMLButtonElement>(null);
-
-  // Auto-cancel reset confirmation after 5 seconds, focus the confirm button.
-  // Same two-step pattern as the destructive Resets in the other tabs.
-  useEffect(() => {
-    if (!confirmReset) return;
-    requestAnimationFrame(() => confirmResetRef.current?.focus());
-    const timer = setTimeout(() => setConfirmReset(false), 5000);
-    return () => clearTimeout(timer);
-  }, [confirmReset]);
+  const themeResetRef = useRef<HTMLButtonElement>(null);
+  const themeReset = useConfirmAction(themeResetRef, async () => {
+    const defaultTheme = BUILT_IN_THEMES.find((t) => t.id === DEFAULT_THEME_ID);
+    setActiveTheme(DEFAULT_THEME_ID);
+    await activeThemeItem.setValue(DEFAULT_THEME_ID);
+    announce(`Theme reset to ${defaultTheme?.name ?? DEFAULT_THEME_ID} (default)`, "polite");
+    sendLog("warn", `Theme reset to ${defaultTheme?.name ?? DEFAULT_THEME_ID} (default)`, {
+      source: "options",
+    });
+  });
 
   // Load active theme from storage
   useEffect(() => {
@@ -115,46 +115,23 @@ export function ThemesTab() {
         </div>
       </section>
 
-      {/* Reset — two-step confirm so a single accidental click can't wipe */}
-      {/* the user's chosen theme. Wrapped in its own section landmark so  */}
-      {/* region-hopping screen-reader users can jump to it instead of     */}
-      {/* skipping past a stray button at the root level.                  */}
       <section aria-labelledby="themes-reset-heading" className="space-y-4">
         <h3 id="themes-reset-heading" className="sr-only">
           Reset
         </h3>
-        {!confirmReset ? (
+        {!themeReset.pending ? (
           <Button
             variant="outline"
-            onClick={() => {
-              setConfirmReset(true);
-              announce("Are you sure? Press Reset Theme Settings again to confirm.", "assertive");
-            }}
+            onClick={() =>
+              themeReset.requestConfirm(
+                "Are you sure? Press Reset Theme Settings again to confirm.",
+              )
+            }
           >
             Reset Theme Settings
           </Button>
         ) : (
-          <Button
-            ref={confirmResetRef}
-            variant="destructive"
-            onClick={async () => {
-              const defaultTheme = BUILT_IN_THEMES.find((t) => t.id === DEFAULT_THEME_ID);
-              setActiveTheme(DEFAULT_THEME_ID);
-              await activeThemeItem.setValue(DEFAULT_THEME_ID);
-              announce(
-                `Theme reset to ${defaultTheme?.name ?? DEFAULT_THEME_ID} (default)`,
-                "polite",
-              );
-              sendLog(
-                "warn",
-                `Theme reset to ${defaultTheme?.name ?? DEFAULT_THEME_ID} (default)`,
-                {
-                  source: "options",
-                },
-              );
-              setConfirmReset(false);
-            }}
-          >
+          <Button ref={themeResetRef} variant="destructive" onClick={themeReset.confirm}>
             Confirm Reset Theme Settings
           </Button>
         )}

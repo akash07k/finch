@@ -34,6 +34,7 @@ import {
 import { ExternalLink, Settings, Volume2, VolumeOff } from "lucide-react";
 import { announce } from "@/shared/a11y/announcer";
 import { sendLog } from "@/core/messaging/send";
+import { useCycleTheme } from "@/shared/hooks/use-cycle-theme";
 import { BUILT_IN_THEMES, DEFAULT_THEME_ID } from "@/config/themes";
 import { mutedItem, masterVolumeItem, activeThemeItem } from "@/core/settings/items";
 
@@ -74,17 +75,9 @@ export default function App() {
     loadSettings();
   }, []);
 
-  /** Cycle through available themes via keyboard shortcut. */
-  const handleCycleTheme = useCallback(async () => {
-    const current = await activeThemeItem.getValue();
-    const themeIds = BUILT_IN_THEMES.map((t) => t.id);
-    const nextIndex = (themeIds.indexOf(current) + 1) % themeIds.length;
-    const next = themeIds[nextIndex]!;
-    setActiveTheme(next);
-    await activeThemeItem.setValue(next);
-    announce(`Theme changed to ${next}`, "polite");
-    sendLog("info", `Theme changed to ${next} via popup shortcut`);
-  }, []);
+  const handleCycleTheme = useCycleTheme(
+    useCallback((themeId: string) => setActiveTheme(themeId), []),
+  );
 
   // Register local keyboard shortcuts
   useEffect(() => {

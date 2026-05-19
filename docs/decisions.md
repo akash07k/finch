@@ -6,6 +6,22 @@ Reverse chronological (newest first).
 
 ---
 
+## Architecture deepening: hooks, Zod schema, theme loader, messaging
+
+Six targeted refactors to reduce duplication and increase module depth:
+
+**useConfirmAction hook** (`shared/hooks/use-confirm-action.ts`): The two-step destructive-action confirmation pattern was copy-pasted across all four options tabs (6 instances). Extracted into a hook that manages the pending state, auto-cancel timeout, focus management, and ARIA announcement. The caller still owns the button ref because React 19's `react-hooks/refs` lint rule flags refs returned inside custom hook objects as render-time ref accesses.
+
+**useCycleTheme hook** (`shared/hooks/use-cycle-theme.ts`): The popup and options page both had identical `cycleTheme` logic — read current theme from storage, compute next in list, write back. Extracted into a shared hook that accepts an optional state-sync callback.
+
+**Zod settings schema** (`core/settings/schema.ts`): Types and defaults for settings were split across `types.ts` (manual interfaces) and `defaults.ts` (manual object matching those interfaces). Now a single Zod schema defines both: types are inferred via `z.infer`, defaults are derived by parsing an empty skeleton. Default values reference `CONFIG` so `config/index.ts` remains the one file for tuning ship-time values. `types.ts` and `defaults.ts` survive as re-export shims so existing imports work without changes.
+
+**Complete messaging send helpers** (`core/messaging/send.ts`): `sendExportLogs` and `sendClearLogs` join the existing `sendLog` and `sendPreviewSound`. The Logging tab no longer constructs raw `browser.runtime.sendMessage` objects — all UI-to-background messaging now goes through typed helpers.
+
+**Theme loading extraction** (`modules/sound-engine/theme-loader.ts`): The built-in theme fetch-and-register loop was inlined in `SoundEngineModule.initialize()`. Extracted to `loadBuiltInThemes()` so the module's initialize method reads as a sequence of named steps and theme loading is independently testable.
+
+**SoundEngineModule activate split**: The 100-line `activate()` method now delegates to `warmSettingsCaches()` (parallel storage reads to populate in-memory caches) and `registerSettingsWatchers()` (subscribe to live changes). The three methods compose a clear pipeline: warm caches, start watching, subscribe to events.
+
 ## Typed WXT storage items for UI, BrowserSettingsStore for modules
 
 UI entry points (popup, options, background command handlers) now read and write settings through typed storage items defined in `extension/core/settings/items.ts` via WXT's `storage.defineItem()`. Each item wraps one `browser.storage.local` key with a compile-time type and a fallback default sourced from `CONFIG`. The module system continues to use `BrowserSettingsStore`, which provides the generic `SettingsStore` interface that `ModuleContext` exposes and that `InMemorySettingsStore` doubles in tests.

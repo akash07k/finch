@@ -123,6 +123,8 @@ Two layers talk to `browser.storage.local`, each serving a different consumer:
 
 Both layers read and write the same underlying keys in the same storage area. The split exists because the module system needs a generic `SettingsStore` interface (swappable with `InMemorySettingsStore` in tests), while UI code benefits from per-key type safety and centralised defaults.
 
+**Schema layer:** [`extension/core/settings/schema.ts`](../extension/core/settings/schema.ts) is the single source of truth for the shape and defaults of every setting. Zod schemas define types (via `z.infer`) and defaults (via `.default()` sourced from `CONFIG`). `types.ts` re-exports the inferred types; `defaults.ts` derives `DEFAULT_SETTINGS` by parsing an empty skeleton through the root schema.
+
 ## Logger and log server
 
 `packages/logger` is a structured logger with three transports:
@@ -191,18 +193,19 @@ The `extension/` directory contains:
 - `core/` - cross-cutting infrastructure:
   - `module-system/` - `OrioleModule`, `ModuleRegistry`, `ModuleLoader`.
   - `message-bus/` - in-process pub/sub.
-  - `settings/` - `BrowserSettingsStore` (module system), `items.ts` (typed WXT storage items for UI).
+  - `settings/` - `schema.ts` (Zod source of truth), `BrowserSettingsStore` (module system), `items.ts` (typed WXT storage items for UI).
   - `messaging/` - typed `chrome.runtime.sendMessage` wrapper.
 - `modules/sound-engine/` - the audio feature module:
   - `index.ts` - `SoundEngineModule`.
   - `event-registry.ts` - all supported browser events.
   - `event-engine.ts` - generic router.
   - `cooldown-gate.ts` - atomic gate with priority preemption.
+  - `theme-loader.ts` - loads built-in theme manifests via fetch.
   - `theme-manager.ts` - resolves event id to sound file URL.
   - `theme-schema.ts` - `theme.json` validator.
   - `types.ts` - `EventDefinition`, `BrowserEventMessage`.
   - `audio-backends/` - Chrome offscreen vs Firefox direct.
-- `shared/` - `a11y/` for announcer and focus utilities, `platform/` for browser and OS detection.
+- `shared/` - `a11y/` for announcer and focus utilities, `hooks/` for `useConfirmAction` and `useCycleTheme`, `platform/` for browser and OS detection.
 - `components/ui/` - shadcn/ui components (button, slider, tabs, and so on).
 - `lib/utils.ts` - the `cn()` Tailwind class merger.
 - `public/` - `icon/` for extension icons, `sounds/<theme>/` for `theme.json` and `.ogg` files.
@@ -241,6 +244,7 @@ extension/
 │   └── audio-backends/                 # Chrome offscreen vs Firefox direct
 ├── shared/
 │   ├── a11y/                           # announcer, focus utilities
+│   ├── hooks/                          # useConfirmAction, useCycleTheme
 │   └── platform/                       # browser + OS detection
 ├── components/ui/                      # shadcn/ui (button, slider, tabs, ...)
 ├── lib/utils.ts                        # cn() Tailwind class merger
