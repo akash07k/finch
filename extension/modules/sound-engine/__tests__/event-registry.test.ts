@@ -12,6 +12,9 @@ import {
 import { getEventDefaults } from "../../../config/events.js";
 import { BUILT_IN_THEMES } from "../../../config/themes.js";
 
+const extensionDir = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+const repoRoot = resolve(extensionDir, "..");
+
 describe("EVENT_REGISTRY", () => {
   it("has events defined", () => {
     expect(EVENT_REGISTRY.length).toBeGreaterThan(0);
@@ -98,15 +101,6 @@ describe("EVENT_REGISTRY", () => {
   it("every default-enabled event has a direct mapping in every built-in theme", async () => {
     const defaultEnabled = EVENT_REGISTRY.filter((e) => getEventDefaults(e.id).enabled);
 
-    // Resolve theme.json paths relative to this test file rather than
-    // process.cwd(). The test was originally written assuming vitest
-    // runs from extension/, but the root vitest.config.ts's projects:
-    // ["packages/*", "extension"] invokes the suite from the repo
-    // root — where "public/sounds/pulse/theme.json" does not exist.
-    // fileURLToPath + dirname anchors the resolution to the file on
-    // disk so either runner works.
-    const extensionDir = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
-
     for (const theme of BUILT_IN_THEMES) {
       const themeJsonPath = resolve(extensionDir, "public", theme.path, "theme.json");
       const raw = await readFile(themeJsonPath, "utf8");
@@ -117,6 +111,108 @@ describe("EVENT_REGISTRY", () => {
           manifest.mappings[event.id],
           `Theme "${theme.id}" is missing a direct sound mapping for default-enabled event "${event.id}". Without a mapping the event silently falls back to the generic-info sound.`,
         ).toBeDefined();
+      }
+    }
+  });
+
+  // Guard against hardcoded event counts in prose drifting from the
+  // registry. Every file that claims a specific number of events is
+  // checked here. When you add or remove an event, this test tells you
+  // exactly which files need updating.
+  describe("hardcoded event counts match registry", () => {
+    const total = EVENT_REGISTRY.length;
+    const chromeCount = EVENT_REGISTRY.filter((e) => e.platforms.includes("chrome")).length;
+    const firefoxCount = EVENT_REGISTRY.filter((e) => e.platforms.includes("firefox")).length;
+
+    const files = [
+      {
+        path: resolve(repoRoot, "README.md"),
+        checks: [
+          { pattern: /(\d+) browser events across/, label: "total", expected: total },
+          { pattern: /(\d+) on Chrome/, label: "chrome", expected: chromeCount },
+          { pattern: /(\d+) on Firefox/, label: "firefox", expected: firefoxCount },
+          { pattern: /(\d+) essential/, label: "tier 1", expected: TIER_1_COUNT },
+          { pattern: /(\d+) useful/, label: "tier 2", expected: TIER_2_COUNT },
+          { pattern: /(\d+) advanced/, label: "tier 3", expected: TIER_3_COUNT },
+        ],
+      },
+      {
+        path: resolve(repoRoot, "docs/sound-engine.md"),
+        checks: [
+          { pattern: /has (\d+) events/, label: "total", expected: total },
+          { pattern: /(\d+) on Chrome/, label: "chrome", expected: chromeCount },
+          { pattern: /(\d+) on Firefox/, label: "firefox", expected: firefoxCount },
+          { pattern: /(\d+) tier 1/, label: "tier 1", expected: TIER_1_COUNT },
+          { pattern: /(\d+) tier 2/, label: "tier 2", expected: TIER_2_COUNT },
+          { pattern: /(\d+) tier 3/, label: "tier 3", expected: TIER_3_COUNT },
+        ],
+      },
+      {
+        path: resolve(extensionDir, "wxt.config.ts"),
+        checks: [{ pattern: /(\d+) events,/, label: "total", expected: total }],
+      },
+      {
+        path: resolve(extensionDir, "store-listing/summary.md"),
+        checks: [{ pattern: /(\d+) events with/, label: "total", expected: total }],
+      },
+      {
+        path: resolve(extensionDir, "store-listing/description.md"),
+        checks: [
+          { pattern: /(\d+) events on Chrome/, label: "chrome", expected: chromeCount },
+          { pattern: /(\d+) on Firefox/, label: "firefox", expected: firefoxCount },
+          {
+            pattern: /Tier 1 — Essential \((\d+) on Chrome/,
+            label: "tier 1 chrome",
+            expected: EVENT_REGISTRY.filter((e) => e.tier === 1 && e.platforms.includes("chrome"))
+              .length,
+          },
+          {
+            pattern: /Essential \(\d+ on Chrome, (\d+) on Firefox/,
+            label: "tier 1 firefox",
+            expected: EVENT_REGISTRY.filter((e) => e.tier === 1 && e.platforms.includes("firefox"))
+              .length,
+          },
+          {
+            pattern: /Tier 2 — Useful \((\d+) on Chrome/,
+            label: "tier 2 chrome",
+            expected: EVENT_REGISTRY.filter((e) => e.tier === 2 && e.platforms.includes("chrome"))
+              .length,
+          },
+          {
+            pattern: /Useful \(\d+ on Chrome, (\d+) on Firefox/,
+            label: "tier 2 firefox",
+            expected: EVENT_REGISTRY.filter((e) => e.tier === 2 && e.platforms.includes("firefox"))
+              .length,
+          },
+          {
+            pattern: /Tier 3 — Advanced \((\d+) on Chrome/,
+            label: "tier 3 chrome",
+            expected: EVENT_REGISTRY.filter((e) => e.tier === 3 && e.platforms.includes("chrome"))
+              .length,
+          },
+          {
+            pattern: /Advanced \(\d+ on Chrome, (\d+) on Firefox/,
+            label: "tier 3 firefox",
+            expected: EVENT_REGISTRY.filter((e) => e.tier === 3 && e.platforms.includes("firefox"))
+              .length,
+          },
+        ],
+      },
+    ];
+
+    for (const file of files) {
+      const relPath = file.path.replace(repoRoot + (process.platform === "win32" ? "\\" : "/"), "");
+
+      for (const check of file.checks) {
+        it(`${relPath} — ${check.label} count is ${check.expected}`, async () => {
+          const content = await readFile(file.path, "utf8");
+          const match = content.match(check.pattern);
+          expect(match, `pattern ${check.pattern} not found in ${relPath}`).not.toBeNull();
+          expect(
+            Number(match![1]),
+            `${relPath} says ${match![1]} but registry has ${check.expected}`,
+          ).toBe(check.expected);
+        });
       }
     }
   });
