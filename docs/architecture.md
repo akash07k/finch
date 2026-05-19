@@ -1,12 +1,12 @@
 # Architecture
 
-Oriole is an audio-feedback browser extension. Browser events are mapped to short audio cues, primarily to give blind and low-vision users a richer sense of what the browser is doing.
+Finch is an audio-feedback browser extension. Browser events are mapped to short audio cues, primarily to give blind and low-vision users a richer sense of what the browser is doing.
 
 The codebase is a small pnpm monorepo with three packages: the extension itself plus two supporting libraries used during development.
 
 - `extension/` - the WXT browser extension (the product).
-- `packages/logger/` - `@oriole/logger`, consumed by the extension.
-- `packages/log-server/` - `@oriole/log-server`, the dev-only WebSocket sink and React viewer.
+- `packages/logger/` - `@finch/logger`, consumed by the extension.
+- `packages/log-server/` - `@finch/log-server`, the dev-only WebSocket sink and React viewer.
 - `docs/` - this directory.
 - `README.md` and `LICENSE.md` at the root.
 
@@ -14,11 +14,11 @@ The codebase is a small pnpm monorepo with three packages: the extension itself 
 <summary>Visual tree</summary>
 
 ```text
-oriole/
+finch/
 ├── extension/                       # the product (WXT browser extension)
 ├── packages/
-│   ├── logger/                      # @oriole/logger (consumed by the extension)
-│   └── log-server/                  # @oriole/log-server (dev-only WebSocket sink + viewer)
+│   ├── logger/                      # @finch/logger (consumed by the extension)
+│   └── log-server/                  # @finch/log-server (dev-only WebSocket sink + viewer)
 ├── docs/                            # this directory
 └── README.md, LICENSE.md
 ```
@@ -29,9 +29,9 @@ The deeper exploration of any subsystem is in its own document; this one is the 
 
 ## Why pnpm workspaces
 
-The extension consumes `@oriole/logger` as `workspace:*`. pnpm symlinks the package from `packages/logger/dist/` so changes flow without publishing. This is why `pnpm build:logger` must run before the extension's dev server: the extension imports the built output, not the TS sources. The `pnpm setup` one-shot at the repo root chains this for you (install + build logger + `wxt prepare`).
+The extension consumes `@finch/logger` as `workspace:*`. pnpm symlinks the package from `packages/logger/dist/` so changes flow without publishing. This is why `pnpm build:logger` must run before the extension's dev server: the extension imports the built output, not the TS sources. The `pnpm setup` one-shot at the repo root chains this for you (install + build logger + `wxt prepare`).
 
-`packages/log-server` is never bundled into the extension. It runs as a standalone Node CLI plus a small accessible React viewer. The extension only knows about it through the optional `WebSocketTransport` in `@oriole/logger`. Without that opt-in, the log-server is invisible.
+`packages/log-server` is never bundled into the extension. It runs as a standalone Node CLI plus a small accessible React viewer. The extension only knows about it through the optional `WebSocketTransport` in `@finch/logger`. Without that opt-in, the log-server is invisible.
 
 ## Runtime contexts
 
@@ -64,10 +64,10 @@ The async chain inside `defineBackground(() => bootstrap().catch(...))` is requi
 
 ## Module system
 
-Every "feature" implements `OrioleModule` (see [`extension/core/module-system/types.ts`](../extension/core/module-system/types.ts)):
+Every "feature" implements `FinchModule` (see [`extension/core/module-system/types.ts`](../extension/core/module-system/types.ts)):
 
 ```ts
-interface OrioleModule {
+interface FinchModule {
   readonly id: string;
   readonly name: string;
   readonly version: string;
@@ -130,7 +130,7 @@ Both layers read and write the same underlying keys in the same storage area. Th
 `packages/logger` is a structured logger with three transports:
 
 - `ConsoleTransport` - formatted output via `console.debug` / `info` / `warn` / `error`.
-- `IndexedDBTransport` - persists every entry to `oriole-logs`, rotates at 10,000 entries (`CONFIG.logger.idbMaxEntries`). Supports `query()` for export.
+- `IndexedDBTransport` - persists every entry to `finch-logs`, rotates at 10,000 entries (`CONFIG.logger.idbMaxEntries`). Supports `query()` for export.
 - `WebSocketTransport` - opt-in, buffers up to 1,000 entries while disconnected, exponential-backoff reconnect.
 
 `packages/log-server` is a Node `commander` CLI that opens a WebSocket server, holds a ring buffer of recent entries for replay to new clients, and serves a small accessible React UI over HTTP. It exists because Chrome's service-worker DevTools console is awkward to use with a screen reader; the log-server gives screen-reader-friendly real-time visibility.
@@ -141,9 +141,9 @@ Vitest. Three test scopes:
 
 | Package              | Environment | Pattern                                                                                          |
 | -------------------- | ----------- | ------------------------------------------------------------------------------------------------ |
-| `@oriole/logger`     | Node        | `__tests__/*.test.ts` colocated with source                                                      |
-| `@oriole/log-server` | Node        | `__tests__/*.test.ts` colocated with source                                                      |
-| `oriole-extension`   | jsdom       | `core/**/__tests__/*.test.ts`, `shared/**/__tests__/*.test.ts`, `modules/**/__tests__/*.test.ts` |
+| `@finch/logger`      | Node        | `__tests__/*.test.ts` colocated with source                                                      |
+| `@finch/log-server`  | Node        | `__tests__/*.test.ts` colocated with source                                                      |
+| `finch-extension`    | jsdom       | `core/**/__tests__/*.test.ts`, `shared/**/__tests__/*.test.ts`, `modules/**/__tests__/*.test.ts` |
 
 The extension uses jsdom because some non-UI code touches DOM-shaped APIs. The `WxtVitest()` plugin from `wxt/testing/vitest-plugin` auto-polyfills browser APIs via `fakeBrowser` from `wxt/testing`, which provides in-memory stubs for `browser.storage`, `browser.runtime`, and event objects like `browser.windows.onFocusChanged`. Tests that need to fire browser events use `fakeBrowser.<api>.trigger()` rather than manual stubs.
 
@@ -191,7 +191,7 @@ The `extension/` directory contains:
   - `events.ts` - `EVENT_DEFAULTS`, per-event enabled flag and debounce window.
   - `themes.ts` - `BUILT_IN_THEMES` and `DEFAULT_THEME_ID`.
 - `core/` - cross-cutting infrastructure:
-  - `module-system/` - `OrioleModule`, `ModuleRegistry`, `ModuleLoader`.
+  - `module-system/` - `FinchModule`, `ModuleRegistry`, `ModuleLoader`.
   - `message-bus/` - in-process pub/sub.
   - `settings/` - `schema.ts` (Zod source of truth), `BrowserSettingsStore` (module system), `items.ts` (typed WXT storage items for UI).
   - `messaging/` - typed `chrome.runtime.sendMessage` wrapper.
@@ -229,7 +229,7 @@ extension/
 │   ├── events.ts                       # EVENT_DEFAULTS - per-event enabled/debounce
 │   └── themes.ts                       # BUILT_IN_THEMES, DEFAULT_THEME_ID
 ├── core/                               # Cross-cutting infrastructure
-│   ├── module-system/                  # OrioleModule, ModuleRegistry, ModuleLoader
+│   ├── module-system/                  # FinchModule, ModuleRegistry, ModuleLoader
 │   ├── message-bus/                    # In-process pub/sub
 │   ├── settings/                       # BrowserSettingsStore + typed WXT storage items
 │   └── messaging/                      # Typed chrome.runtime.sendMessage wrapper

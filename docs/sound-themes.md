@@ -1,6 +1,6 @@
 # Sound themes
 
-This document explains how to author a new sound theme for Oriole and what the contract is between a theme and the sound engine.
+This document explains how to author a new sound theme for Finch and what the contract is between a theme and the sound engine.
 
 ## What a theme is
 
@@ -21,7 +21,7 @@ The extension currently ships with one theme: Pulse. The theme system is designe
   "name": "Pulse",
   "description": "Short, non-intrusive cues that sit comfortably under a screen reader's voice.",
   "version": "1.0.0",
-  "author": "Oriole",
+  "author": "Finch",
   "license": "AGPL-3.0",
   "mappings": {
     "tabs.onCreated": "tab-created.ogg",
@@ -94,7 +94,7 @@ For the fallback files, use the tier or category: `generic-tier1.ogg`, `error.og
 - **Start with the essentials.** Map the 25 tier 1 events first; let the fallbacks cover the rest. You can map tier 2 and tier 3 events later.
 - **Use the Preview button.** Each row in the Sound Events tab has a Preview button that plays the resolved sound. Use it to verify your mapping without enabling the event.
 - **Test the cascade behaviour.** Open a few tabs in quick succession, navigate to a slow page, start a download. Listen for cooldown bunching. If a cue feels swallowed, check whether it's tier 2 or tier 3 (those get suppressed by tier 1 events in the cooldown window).
-- **Test with a screen reader running.** Oriole's primary audience is NVDA / VoiceOver users. A cue that sounds great with a silent screen but blends into the screen reader's voice in real use is a fail.
+- **Test with a screen reader running.** Finch's primary audience is NVDA / VoiceOver users. A cue that sounds great with a silent screen but blends into the screen reader's voice in real use is a fail.
 - **Match the theme's character.** A theme of soft chimes shouldn't have one event using a sharp click. Inconsistency stands out.
 
 ## Built-in theme: Pulse
@@ -105,6 +105,6 @@ The fallback set is conservative: error fallback for any unmapped error event, g
 
 ## Removing a theme
 
-If you want a build of Oriole without Pulse (or any theme), remove its entry from `BUILT_IN_THEMES` and delete its directory. The theme manager skips themes it doesn't know about; the user just sees fewer entries in the theme picker.
+If you want a build of Finch without Pulse (or any theme), remove its entry from `BUILT_IN_THEMES` and delete its directory. The theme manager skips themes it doesn't know about; the user just sees fewer entries in the theme picker.
 
 The extension always falls back to "no sound" if no theme is active or no fallback resolves, so a build with zero themes is technically valid (and silent).

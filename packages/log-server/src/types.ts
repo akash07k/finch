@@ -1,6 +1,6 @@
 /**
  * Shape of a log entry received over WebSocket.
- * Mirrors @oriole/logger's LogEntry — duplicated here
+ * Mirrors @finch/logger's LogEntry — duplicated here
  * to avoid a runtime dependency on the logger package.
  */
 export interface LogEntry {

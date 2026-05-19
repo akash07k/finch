@@ -7,7 +7,7 @@
  * shape, not the legacy one.
  */
 
-import type { Logger } from "@oriole/logger";
+import type { Logger } from "@finch/logger";
 
 /**
  * A single migration. The runner checks `id` against a marker key in

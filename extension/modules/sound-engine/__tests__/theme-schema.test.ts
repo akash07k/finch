@@ -7,7 +7,7 @@ function validManifest(): ThemeManifest {
   return {
     name: "Subtle",
     description: "Soft clicks and gentle chimes.",
-    author: "Oriole",
+    author: "Finch",
     version: "1.0.0",
     mappings: {
       "tabs.onCreated": "tab-created.ogg",

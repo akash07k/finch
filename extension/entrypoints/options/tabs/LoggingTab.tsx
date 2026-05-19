@@ -148,7 +148,7 @@ export function LoggingTab() {
       const a = document.createElement("a");
       a.href = url;
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-      a.download = `oriole-logs-${timestamp}.${format}`;
+      a.download = `finch-logs-${timestamp}.${format}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

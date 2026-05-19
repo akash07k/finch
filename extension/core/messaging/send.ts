@@ -42,7 +42,7 @@ export async function sendLog(
     } satisfies LogMessage);
   } catch {
     // Background script might not be running — fall back to console
-    console.log(`[Oriole ${level.toUpperCase()}] ${message}`, data ?? "");
+    console.log(`[Finch ${level.toUpperCase()}] ${message}`, data ?? "");
   }
 }
 

@@ -1,7 +1,7 @@
 /**
  * @module config
  *
- * Centralized ship-time configuration for the Oriole extension.
+ * Centralized ship-time configuration for the Finch extension.
  *
  * This is the ONE file a developer opens to tune defaults that ship with
  * the extension. User-facing settings are stored in browser.storage.local
@@ -12,7 +12,7 @@
  * so the extension can override library defaults from a single place.
  */
 
-import { LogLevel } from "@oriole/logger";
+import { LogLevel } from "@finch/logger";
 
 export const CONFIG = {
   /** Default user-facing settings (written to browser.storage.local on first install). */

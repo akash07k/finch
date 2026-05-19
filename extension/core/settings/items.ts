@@ -14,7 +14,7 @@
 
 import { storage } from "#imports";
 import { CONFIG } from "../../config/index.js";
-import type { LogLevel } from "@oriole/logger";
+import type { LogLevel } from "@finch/logger";
 
 // ── General ──────────────────────────────────────────────────────────
 

@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ModuleRegistry } from "../registry.js";
-import type { OrioleModule } from "../types.js";
+import type { FinchModule } from "../types.js";
 
 /**
  * Creates a minimal mock module for testing.
  * Only the properties needed by the registry are included.
  */
-function createMockModule(id: string, overrides?: Partial<OrioleModule>): OrioleModule {
+function createMockModule(id: string, overrides?: Partial<FinchModule>): FinchModule {
   return {
     id,
     name: `Test Module: ${id}`,

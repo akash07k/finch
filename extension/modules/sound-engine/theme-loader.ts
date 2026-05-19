@@ -7,7 +7,7 @@
  * custom themes in the future).
  */
 
-import type { Logger } from "@oriole/logger";
+import type { Logger } from "@finch/logger";
 import type { ThemeManager } from "./theme-manager.js";
 import { BUILT_IN_THEMES } from "../../config/themes.js";
 import { getAssetURL } from "../../shared/platform/url.js";

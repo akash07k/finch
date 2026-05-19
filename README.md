@@ -1,13 +1,13 @@
-# Oriole
+# Finch
 
-Audio cues for browser events. Oriole plays short sounds when things happen in your browser: a tab opens, a download finishes, a page loads. The primary audience is screen-reader users, where visual cues for these events are easy to miss. Sighted users can use it for ambient feedback without watching the screen.
+Audio cues for browser events. Finch plays short sounds when things happen in your browser: a tab opens, a download finishes, a page loads. The primary audience is screen-reader users, where visual cues for these events are easy to miss. Sighted users can use it for ambient feedback without watching the screen.
 
 ## Install
 
-- Chrome, Chromium, Edge, Brave: [Oriole on the Chrome Web Store](https://chromewebstore.google.com/detail/oriole/mklgnoddcbikoenjlfmdghigeapfeijk)
-- Firefox: [Oriole on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/oriole/)
+- Chrome, Chromium, Edge, Brave: [Finch on the Chrome Web Store](https://chromewebstore.google.com/detail/finch/mklgnoddcbikoenjlfmdghigeapfeijk)
+- Firefox: [Finch on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/finch/)
 
-Both store versions auto-update. For testing pre-release builds, [GitHub Releases](https://github.com/akash07k/oriole/releases) attaches Chrome and Firefox zips per release. Chrome: load unpacked via `chrome://extensions` developer mode. Firefox: temporary load via `about:debugging`. Sideloads do not auto-update.
+Both store versions auto-update. For testing pre-release builds, [GitHub Releases](https://github.com/akash07k/finch/releases) attaches Chrome and Firefox zips per release. Chrome: load unpacked via `chrome://extensions` developer mode. Firefox: temporary load via `about:debugging`. Sideloads do not auto-update.
 
 Store-listing copy lives in [`extension/store-listing/`](./extension/store-listing/).
 
@@ -33,16 +33,16 @@ The optional log viewer for development runs only on `localhost:8089` and is off
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md)
 - [`LICENSE.md`](./LICENSE.md) - AGPL-3.0
 - [`docs/`](./docs/) - architecture and design docs; see [`docs/README.md`](./docs/README.md) for the index
-- [GitHub Issues](https://github.com/akash07k/oriole/issues)
-- [GitHub Releases](https://github.com/akash07k/oriole/releases)
+- [GitHub Issues](https://github.com/akash07k/finch/issues)
+- [GitHub Releases](https://github.com/akash07k/finch/releases)
 
 ## Developer setup
 
 Requires Node.js 20 or later and pnpm 10 or later.
 
 ```sh
-git clone https://github.com/akash07k/oriole.git
-cd oriole
+git clone https://github.com/akash07k/finch.git
+cd finch
 pnpm setup
 ```
 
@@ -83,7 +83,7 @@ The tag push fires `.github/workflows/release.yml`, which runs the gates again a
 
 If one store rejects an upload (most commonly Chrome's `ITEM_NOT_UPDATABLE` while a previous review is still in flight), you can re-dispatch the workflow against just the failing store once the rejection clears. The GitHub Release is created on the original tag push regardless of submit outcome, so re-dispatch never produces a duplicate Release.
 
-[![Re-dispatch release workflow](https://img.shields.io/badge/Actions-Re--run%20release-blue?logo=github)](https://github.com/akash07k/oriole/actions/workflows/release.yml)
+[![Re-dispatch release workflow](https://img.shields.io/badge/Actions-Re--run%20release-blue?logo=github)](https://github.com/akash07k/finch/actions/workflows/release.yml)
 
 Open the workflow page above, click **Run workflow**, then pick:
 
@@ -105,8 +105,8 @@ Then enable log streaming in the extension's options page (Logging tab). The vie
 pnpm monorepo with three packages:
 
 - `extension/` - the WXT browser extension (the product)
-- `packages/logger/` - `@oriole/logger`, structured logger used by the extension
-- `packages/log-server/` - `@oriole/log-server`, dev-only WebSocket sink and React viewer
+- `packages/logger/` - `@finch/logger`, structured logger used by the extension
+- `packages/log-server/` - `@finch/log-server`, dev-only WebSocket sink and React viewer
 
 The extension uses a module-system with lifecycle stages (initialize, activate, deactivate, dispose). Modules talk via a message bus and never import each other directly. The sound engine module is the only module so far.
 

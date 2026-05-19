@@ -36,7 +36,7 @@ import { WHATS_NEW } from "./whats-new.generated.js";
 
 const MANIFEST = browser.runtime.getManifest();
 const EXTENSION_NAME = MANIFEST.name;
-const FULL_CHANGELOG_URL = "https://github.com/akash07k/oriole/blob/main/CHANGELOG.md";
+const FULL_CHANGELOG_URL = "https://github.com/akash07k/finch/blob/main/CHANGELOG.md";
 
 /** Read the `from` query parameter (the version the user updated from). */
 function readPreviousVersion(): string | null {

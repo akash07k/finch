@@ -1,7 +1,7 @@
 /**
  * @module background
  *
- * Oriole service worker — the extension's entry point.
+ * Finch service worker — the extension's entry point.
  *
  * This is where the module system boots up. On extension load:
  * 1. Creates the logger with a Console transport
@@ -28,8 +28,8 @@ import {
   WebSocketTransport,
   IndexedDBTransport,
   LogExporter,
-} from "@oriole/logger";
-import type { Logger } from "@oriole/logger";
+} from "@finch/logger";
+import type { Logger } from "@finch/logger";
 import { ModuleRegistry } from "../core/module-system/registry.js";
 import { ModuleLoader } from "../core/module-system/loader.js";
 import { MessageBusImpl } from "../core/message-bus/bus.js";
@@ -58,7 +58,7 @@ export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(async (details) => {
     if (details.reason === "install") {
       browser.runtime.openOptionsPage();
-      console.log("[Oriole] First install — opened options page for onboarding");
+      console.log("[Finch] First install — opened options page for onboarding");
       return;
     }
     if (details.reason !== "update") return;
@@ -70,7 +70,7 @@ export default defineBackground(() => {
     const optedIn = await showWhatsNewOnUpdateItem.getValue();
     if (!optedIn) {
       console.log(
-        `[Oriole] Update ${previousVersion} -> ${currentVersion}; What's New disabled by user`,
+        `[Finch] Update ${previousVersion} -> ${currentVersion}; What's New disabled by user`,
       );
       return;
     }
@@ -81,10 +81,10 @@ export default defineBackground(() => {
     try {
       await browser.tabs.create({ url });
       console.log(
-        `[Oriole] Update ${previousVersion} -> ${currentVersion}; opened What's New page`,
+        `[Finch] Update ${previousVersion} -> ${currentVersion}; opened What's New page`,
       );
     } catch (error) {
-      console.error("[Oriole] Failed to open What's New tab:", error);
+      console.error("[Finch] Failed to open What's New tab:", error);
     }
   });
 
@@ -98,17 +98,17 @@ export default defineBackground(() => {
     //    and log export. WebSocket transport is added later if the user
     //    enables log streaming (to avoid Chrome errors from failed connections).
     const idbTransport = new IndexedDBTransport({
-      dbName: "oriole-logs",
+      dbName: "finch-logs",
       maxEntries: CONFIG.logger.idbMaxEntries,
       storeName: CONFIG.logger.idbStoreName,
     });
     const logger = createLogger({
       level: LogLevel.DEBUG,
-      tag: "oriole",
+      tag: "finch",
       transports: [new ConsoleTransport(), idbTransport],
     });
 
-    logger.info("Oriole starting up...");
+    logger.info("Finch starting up...");
 
     try {
       // 2. Detect the platform
@@ -172,7 +172,7 @@ export default defineBackground(() => {
         }
       }
 
-      logger.info("Oriole ready", {
+      logger.info("Finch ready", {
         activeModules: enabledModules.length,
         platform: platform.browser,
       });
@@ -208,14 +208,14 @@ export default defineBackground(() => {
         loader
           .disposeAll()
           .catch((e: unknown) => {
-            console.error("[Oriole] Module disposal error:", e);
+            console.error("[Finch] Module disposal error:", e);
           })
           .finally(() => {
             settings.dispose();
           });
       });
     } catch (error) {
-      logger.fatal("Oriole failed to start", error instanceof Error ? error : undefined);
+      logger.fatal("Finch failed to start", error instanceof Error ? error : undefined);
     }
   }
 
@@ -269,7 +269,7 @@ export default defineBackground(() => {
         sender: chrome.runtime.MessageSender,
         sendResponse: (response: unknown) => void,
       ) => {
-        // Reject anything from another extension. Oriole ships no
+        // Reject anything from another extension. Finch ships no
         // content scripts and isn't externally_connectable, so messages
         // whose sender.id doesn't match our own runtime id come from a
         // foreign extension probing this background. Drop them; none of
@@ -364,7 +364,7 @@ export default defineBackground(() => {
         case "toggle-mute": {
           const wasMuted = await mutedItem.getValue();
           await mutedItem.setValue(!wasMuted);
-          const message = wasMuted ? "Oriole unmuted" : "Oriole muted";
+          const message = wasMuted ? "Finch unmuted" : "Finch muted";
           // Show badge text on extension icon (action for MV3, browserAction for MV2)
           const badgeApi = browser.action ?? browser.browserAction;
           if (badgeApi) {
@@ -376,7 +376,7 @@ export default defineBackground(() => {
             await browser.notifications.create({
               type: "basic",
               iconUrl: chrome.runtime.getURL("icon/128.png"),
-              title: "Oriole",
+              title: "Finch",
               message,
             });
           } catch (e) {
@@ -396,7 +396,7 @@ export default defineBackground(() => {
             await browser.notifications.create({
               type: "basic",
               iconUrl: browser.runtime.getURL("/icon/128.png"),
-              title: "Oriole",
+              title: "Finch",
               message: `Mute when unfocused: ${next ? "enabled" : "disabled"}`,
             });
           } catch (e) {
@@ -534,6 +534,6 @@ export default defineBackground(() => {
   // Cannot use top-level await in a service worker, so we
   // call the async function and catch errors.
   bootstrap().catch((error) => {
-    console.error("[Oriole] Fatal bootstrap error:", error);
+    console.error("[Finch] Fatal bootstrap error:", error);
   });
 });

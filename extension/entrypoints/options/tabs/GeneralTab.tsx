@@ -281,7 +281,7 @@ export function GeneralTab() {
           <div>
             <Label htmlFor="whats-new-toggle">Show What&apos;s New on update</Label>
             <p id="whats-new-desc" className="text-sm text-muted-foreground">
-              Open a page describing new features when Oriole updates to a new version.
+              Open a page describing new features when Finch updates to a new version.
             </p>
           </div>
           <Switch

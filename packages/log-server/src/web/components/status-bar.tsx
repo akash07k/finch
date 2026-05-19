@@ -108,7 +108,7 @@ export function StatusBar({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `oriole-logs.${extension}`;
+    a.download = `finch-logs.${extension}`;
     a.click();
     URL.revokeObjectURL(url);
 

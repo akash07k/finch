@@ -9,7 +9,7 @@
  * each piece independently testable.
  */
 
-import type { OrioleModule, ModuleEntry, ModuleState } from "./types.js";
+import type { FinchModule, ModuleEntry, ModuleState } from "./types.js";
 
 /**
  * Stores and retrieves module entries by ID.
@@ -37,7 +37,7 @@ export class ModuleRegistry {
    *
    * @throws Error if a module with the same ID is already registered.
    */
-  register(module: OrioleModule): void {
+  register(module: FinchModule): void {
     if (this.modules.has(module.id)) {
       throw new Error(`Module "${module.id}" is already registered.`);
     }

@@ -5,8 +5,8 @@ This is a small codebase with a single primary maintainer. Most "contributions" 
 ## Setup
 
 ```sh
-git clone https://github.com/akash07k/oriole.git
-cd oriole
+git clone https://github.com/akash07k/finch.git
+cd finch
 pnpm setup
 ```
 
@@ -104,7 +104,7 @@ CHANGELOG entries below v1.1.1 are hand-written. Everything from v1.1.1 onward i
 
 ### Re-submitting after a store rejection
 
-The GitHub Release page is created on the original tag push and is independent of store-submission outcome, so a partial failure (one store accepted, the other rejected) still produces a Release with the sideloadable zips. To resubmit just the failing store after a rejection clears, dispatch [`.github/workflows/release.yml`](https://github.com/akash07k/oriole/actions/workflows/release.yml) manually with **target** set to `chrome` or `firefox`. The default `both` matches the tag-triggered behaviour.
+The GitHub Release page is created on the original tag push and is independent of store-submission outcome, so a partial failure (one store accepted, the other rejected) still produces a Release with the sideloadable zips. To resubmit just the failing store after a rejection clears, dispatch [`.github/workflows/release.yml`](https://github.com/akash07k/finch/actions/workflows/release.yml) manually with **target** set to `chrome` or `firefox`. The default `both` matches the tag-triggered behaviour.
 
 ## Testing conventions
 

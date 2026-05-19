@@ -10,7 +10,7 @@
 //     pnpm submit:firefox    # submit Firefox only
 //
 // The .output/ zip filenames embed the extension name and version
-// (e.g. oriole-extension-1.0.0-chrome.zip), so hardcoding
+// (e.g. finch-extension-1.0.0-chrome.zip), so hardcoding
 // paths in package.json would need a manual edit on every version
 // bump. Node's readdir + filter avoids a shell-glob dependency that
 // breaks on Windows cmd.

@@ -52,7 +52,7 @@ Extending the existing windows-focus-router rather than registering a separate `
 
 `management`, `cookies`, and `history` are declared under `optional_permissions` instead of the static `permissions` list. A fresh install therefore prompts only for the seven everyday permissions (`tabs`, `bookmarks`, `downloads`, `webNavigation`, `storage`, `notifications`, `idle`, plus `offscreen` on Chrome). Each of the three optional permissions is needed by exactly one cluster of Tier 2 events that ship disabled, and getting prompted up front for permissions the user may never enable is the kind of overreach store reviewers flag on audio extensions.
 
-`extension/shared/permissions/request.ts` exports `requestPermissions` (a `permissions.contains` short-circuit wrapping `permissions.request`) and `OPTIONAL_PERMISSIONS`, the consumer-side mirror of the manifest list. The Sound Events tab's `handleToggle` calls `pickOptionalPermissions(event.permissions)` when enabling a row; if the result is non-empty it requests the grant before writing storage. Denial reverts the optimistic Switch state and announces the requirement assertively. Disabling never prompts, and the existing static permissions (`tabs`, `webNavigation`, etc.) skip the helper entirely because they are already granted at install. Releasing optional permissions when the last event that needs them is disabled is left as a follow-up — `permissions.remove` works but the UX of a notification "Oriole released the cookies permission" needs a separate think.
+`extension/shared/permissions/request.ts` exports `requestPermissions` (a `permissions.contains` short-circuit wrapping `permissions.request`) and `OPTIONAL_PERMISSIONS`, the consumer-side mirror of the manifest list. The Sound Events tab's `handleToggle` calls `pickOptionalPermissions(event.permissions)` when enabling a row; if the result is non-empty it requests the grant before writing storage. Denial reverts the optimistic Switch state and announces the requirement assertively. Disabling never prompts, and the existing static permissions (`tabs`, `webNavigation`, etc.) skip the helper entirely because they are already granted at install. Releasing optional permissions when the last event that needs them is disabled is left as a follow-up — `permissions.remove` works but the UX of a notification "Finch released the cookies permission" needs a separate think.
 
 ## Split windows.onFocusChanged into windows.onFocused and windows.onUnfocused
 
@@ -281,7 +281,7 @@ The `offscreen` permission is Chrome-only. Firefox ignores unknown permissions b
 
 ## Firefox AMO data_collection_permissions
 
-Required by Firefox AMO for new extensions. Cast in via the WXT manifest hook because WXT's TypeScript types don't yet model this field. Set to `required: ["none"]` with `techdata_collected: false` and `interactiondata_collected: false` - Oriole collects nothing.
+Required by Firefox AMO for new extensions. Cast in via the WXT manifest hook because WXT's TypeScript types don't yet model this field. Set to `required: ["none"]` with `techdata_collected: false` and `interactiondata_collected: false` - Finch collects nothing.
 
 ## CI workflow runs the same gates as pre-push
 
@@ -289,7 +289,7 @@ Required by Firefox AMO for new extensions. Cast in via the WXT manifest hook be
 
 ## Two-step setup for fresh clones via `pnpm setup`
 
-The extension's `postinstall: wxt prepare` hook used to run during `pnpm install`, which loaded `wxt.config.ts`, which transitively imports `@oriole/logger` - a workspace package that resolves to `packages/logger/dist/index.js`. On a fresh clone, dist doesn't exist yet, so the hook fails. Three-step fix: install with `--ignore-scripts` to skip lifecycle hooks; run `pnpm build:logger` to populate dist; run `wxt prepare` manually. The root `pnpm setup` script chains these for first-time contributors. The extension's `postinstall` is now guarded - it no-ops if `packages/logger/dist/index.js` doesn't exist.
+The extension's `postinstall: wxt prepare` hook used to run during `pnpm install`, which loaded `wxt.config.ts`, which transitively imports `@finch/logger` - a workspace package that resolves to `packages/logger/dist/index.js`. On a fresh clone, dist doesn't exist yet, so the hook fails. Three-step fix: install with `--ignore-scripts` to skip lifecycle hooks; run `pnpm build:logger` to populate dist; run `wxt prepare` manually. The root `pnpm setup` script chains these for first-time contributors. The extension's `postinstall` is now guarded - it no-ops if `packages/logger/dist/index.js` doesn't exist.
 
 ## Emit logger .d.ts via tsc directly
 
@@ -313,7 +313,7 @@ React 19 for the latest concurrent-rendering primitives. Radix UI primitives bec
 
 ## Module system with lifecycle and topological-sort init
 
-Every "feature" implements `OrioleModule` with `initialize` / `activate` / `deactivate` / `dispose`. `ModuleLoader` runs the lifecycle in dependency order via Kahn's-algorithm topological sort. Modules never import each other directly; they communicate through the shared `MessageBus`. The boundary is enforceable, modules are independently testable, and a future second module can be added without modifying the first.
+Every "feature" implements `FinchModule` with `initialize` / `activate` / `deactivate` / `dispose`. `ModuleLoader` runs the lifecycle in dependency order via Kahn's-algorithm topological sort. Modules never import each other directly; they communicate through the shared `MessageBus`. The boundary is enforceable, modules are independently testable, and a future second module can be added without modifying the first.
 
 ## Flat dot-notation keys in BrowserSettingsStore
 

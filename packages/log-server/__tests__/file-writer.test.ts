@@ -17,7 +17,7 @@ function makeEntry(overrides: Partial<LogEntry> = {}): LogEntry {
 }
 
 function tempPath(): string {
-  return join(tmpdir(), `oriole-test-${Date.now()}-${Math.random()}.log`);
+  return join(tmpdir(), `finch-test-${Date.now()}-${Math.random()}.log`);
 }
 
 describe("FileWriter", () => {

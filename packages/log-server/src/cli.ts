@@ -47,8 +47,8 @@ export function parseCliArgs(argv: string[]): CliOptions {
   const program = new Command();
 
   program
-    .name("oriole-log-server")
-    .description("Accessible log viewer and WebSocket server for @oriole/logger")
+    .name("finch-log-server")
+    .description("Accessible log viewer and WebSocket server for @finch/logger")
     .version("0.0.1")
     .option("-p, --port <number>", "WebSocket port", "8089")
     .option("-f, --file <path>", "Also write logs to a file")
@@ -60,7 +60,7 @@ export function parseCliArgs(argv: string[]): CliOptions {
     .option("-t, --tag <prefix>", "Filter by tag prefix")
     .option("--color", "Enable colored output", false)
     .option("-b, --buffer-size <number>", "In-memory buffer size (0 for unlimited)", "1000")
-    .option("--log-dir <path>", "Session storage directory (default: ~/.oriole-logs)")
+    .option("--log-dir <path>", "Session storage directory (default: ~/.finch-logs)")
     .option("--max-sessions <number>", "Max session files to keep", "50");
 
   program.parse(argv, { from: "user" });
@@ -130,7 +130,7 @@ export async function startServer(options: CliOptions): Promise<void> {
   });
 
   const port = await server.start();
-  console.log(`oriole-log-server listening on ws://localhost:${port}`);
+  console.log(`finch-log-server listening on ws://localhost:${port}`);
   if (hasWebViewer) {
     console.log(`Web viewer: http://localhost:${port}`);
   }

@@ -1,7 +1,7 @@
 /**
  * @module a11y/announcer
  *
- * Screen reader live region announcer for the Oriole extension.
+ * Screen reader live region announcer for the Finch extension.
  *
  * Wraps @react-aria/live-announcer — Adobe's battle-tested, pure DOM
  * announcer that handles timing quirks, duplicate message detection,

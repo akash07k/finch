@@ -7,7 +7,7 @@
  */
 
 export type {
-  OrioleSettings,
+  FinchSettings,
   GeneralSettings,
   SoundSettings,
   ThemeSettings,

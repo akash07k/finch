@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 import { WxtVitest } from "wxt/testing/vitest-plugin";
 
 /**
- * Vitest configuration for the Oriole extension.
+ * Vitest configuration for the Finch extension.
  *
  * WxtVitest() provides browser API polyfilling via fakeBrowser,
  * applies Vite config from wxt.config.ts, configures path aliases,

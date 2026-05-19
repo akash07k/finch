@@ -6,7 +6,7 @@
     "push": false,
     "commitMessage": "chore(release): bump extension to ${version}",
     "tagName": "v${version}",
-    "tagAnnotation": "Oriole ${version}",
+    "tagAnnotation": "Finch ${version}",
     "commitArgs": ["-S"],
     "tagArgs": ["-s"],
     "requireBranch": "main",
@@ -45,7 +45,7 @@
         ]
       },
       "infile": "../CHANGELOG.md",
-      "header": "# Changelog\n\nAll notable changes to Oriole are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Oriole adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Entries below v1.1.1 are released by hand; everything from v1.1.1 onward is generated from [Conventional Commits](https://conventionalcommits.org) by `release-it`.\n",
+      "header": "# Changelog\n\nAll notable changes to Finch are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Finch adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Entries below v1.1.1 are released by hand; everything from v1.1.1 onward is generated from [Conventional Commits](https://conventionalcommits.org) by `release-it`.\n",
       "ignoreRecommendedBump": false
     }
   }

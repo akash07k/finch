@@ -1,7 +1,7 @@
 /**
  * @module popup/App
  *
- * Oriole popup UI — the primary quick-access interface.
+ * Finch popup UI — the primary quick-access interface.
  *
  * Opens when the user clicks the extension icon in the toolbar.
  * Provides immediate access to:
@@ -163,12 +163,12 @@ export default function App() {
 
   return (
     <main
-      aria-label="Oriole controls"
+      aria-label="Finch controls"
       aria-keyshortcuts="Shift+? Alt+T"
       className="w-[320px] p-4 space-y-4"
     >
       <h1 ref={headingRef} tabIndex={-1} className="text-lg font-bold">
-        Oriole
+        Finch
       </h1>
 
       {/* Sound Controls — section so the heading is announced once on entry, */}

@@ -1,7 +1,7 @@
 /**
  * @module settings/schema
  *
- * Zod schemas for Oriole's settings. This file is the single source of
+ * Zod schemas for Finch's settings. This file is the single source of
  * truth for the shape, types, and defaults of every user-configurable
  * setting.
  *
@@ -17,7 +17,7 @@
 
 import { z } from "zod";
 import { CONFIG } from "../../config/index.js";
-import { LogLevel } from "@oriole/logger";
+import { LogLevel } from "@finch/logger";
 
 // ── Leaf schemas ────────────────────────────────────────────────────
 
@@ -70,7 +70,7 @@ export const hotkeySettingsSchema = z.object({
 // input. Instead, `defaults.ts` passes `{ general: {}, sounds: {}, … }`
 // so each section's per-field `.default()` values kick in during parsing.
 
-export const orioleSettingsSchema = z.object({
+export const finchSettingsSchema = z.object({
   general: generalSettingsSchema,
   sounds: soundSettingsSchema,
   themes: themeSettingsSchema,
@@ -79,7 +79,7 @@ export const orioleSettingsSchema = z.object({
 
 // ── Inferred types ──────────────────────────────────────────────────
 
-export type OrioleSettings = z.infer<typeof orioleSettingsSchema>;
+export type FinchSettings = z.infer<typeof finchSettingsSchema>;
 export type GeneralSettings = z.infer<typeof generalSettingsSchema>;
 export type SoundSettings = z.infer<typeof soundSettingsSchema>;
 export type ThemeSettings = z.infer<typeof themeSettingsSchema>;

@@ -236,7 +236,7 @@ function App() {
       </a>
 
       <header role="banner">
-        <h1>Oriole Log Viewer</h1>
+        <h1>Finch Log Viewer</h1>
         <StatusBar
           connected={connected}
           autoScroll={autoScroll}

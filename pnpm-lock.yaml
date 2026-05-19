@@ -71,7 +71,7 @@ importers:
 
   extension:
     dependencies:
-      '@oriole/logger':
+      '@finch/logger':
         specifier: workspace:*
         version: link:../packages/logger
       '@radix-ui/react-select':

@@ -1,25 +1,25 @@
 /**
  * @module module-system/types
  *
- * Core type definitions for the Oriole module system.
+ * Core type definitions for the Finch module system.
  *
  * Every feature (sound engine, inspector, DOM persist, bookmarks, AI,
- * and more) implements the OrioleModule interface. This ensures consistent
+ * and more) implements the FinchModule interface. This ensures consistent
  * lifecycle management, dependency resolution, and user-controllable
  * activation across all features.
  */
 
-import type { Logger } from "@oriole/logger";
+import type { Logger } from "@finch/logger";
 
 /**
- * Base interface for all Oriole feature modules.
+ * Base interface for all Finch feature modules.
  *
  * Each feature implements this interface to participate in the
  * module lifecycle: initialize → activate → deactivate → dispose.
  *
  * @example
  * ```ts
- * const soundEngine: OrioleModule = {
+ * const soundEngine: FinchModule = {
  *   id: "sound-engine",
  *   name: "Sound Engine",
  *   version: "1.0.0",
@@ -30,7 +30,7 @@ import type { Logger } from "@oriole/logger";
  * };
  * ```
  */
-export interface OrioleModule {
+export interface FinchModule {
   /** Unique module identifier (e.g., "sound-engine"). Used as a key everywhere. */
   readonly id: string;
 
@@ -114,7 +114,7 @@ export type ModuleState =
  */
 export interface ModuleEntry {
   /** The module instance. */
-  module: OrioleModule;
+  module: FinchModule;
 
   /** Current lifecycle state. */
   state: ModuleState;
@@ -162,7 +162,7 @@ export interface PlatformInfo {
   /** Browser identifier. */
   browser: "chrome" | "firefox";
 
-  /** Manifest version (always 3 for Oriole). */
+  /** Manifest version (always 3 for Finch). */
   manifestVersion: number;
 
   /** Browser version string. */

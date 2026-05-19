@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EventEngine } from "../event-engine.js";
 import type { EventDefinition } from "../types.js";
 import type { MessageBus } from "../../../core/module-system/types.js";
-import type { Logger } from "@oriole/logger";
+import type { Logger } from "@finch/logger";
 
 /**
  * Mock browser API that simulates WXT's browser global.

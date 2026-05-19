@@ -8,15 +8,15 @@ Check character count before publishing:
     wc -c extension/store-listing/description.md
 -->
 
-# Oriole - audio cues for browser events
+# Finch - audio cues for browser events
 
-Oriole plays short audio cues when things happen in your browser. A tab opens. A download finishes. A page loads. A bookmark gets saved. Instead of waiting for a visual indicator or wondering whether an action went through, you hear it.
+Finch plays short audio cues when things happen in your browser. A tab opens. A download finishes. A page loads. A bookmark gets saved. Instead of waiting for a visual indicator or wondering whether an action went through, you hear it.
 
 ## Who this is for
 
-The primary audience is blind and low-vision users. Screen readers announce content well, but they often miss the smaller state changes that sighted users pick up from visual motion: a download icon flashing, a tab indicator changing, a bookmark icon turning yellow. Oriole fills that gap with short audio cues per event.
+The primary audience is blind and low-vision users. Screen readers announce content well, but they often miss the smaller state changes that sighted users pick up from visual motion: a download icon flashing, a tab indicator changing, a bookmark icon turning yellow. Finch fills that gap with short audio cues per event.
 
-If you are not a screen-reader user, Oriole is still useful as a non-visual channel for what your browser is doing. Useful when you have many tabs open, slow pages loading in the background, or downloads running while you work in another window.
+If you are not a screen-reader user, Finch is still useful as a non-visual channel for what your browser is doing. Useful when you have many tabs open, slow pages loading in the background, or downloads running while you work in another window.
 
 ## What you hear
 
@@ -49,7 +49,7 @@ Sounds are organised into themes. The extension ships with the Pulse theme, a se
 
 Browsers fire events in bursts. Clicking a link can produce navigation-starting, page-loading, navigation-committed, DOM-ready, and page-loaded in under a second - five events for one user action. Playing five sounds for one action would be overwhelming.
 
-Oriole includes:
+Finch includes:
 
 - A global cooldown gate (~150 ms) that suppresses cascading events while still letting you hear the first one.
 - Priority preemption so higher-priority events (errors, page-loaded) can still play inside the cooldown window, preempting lower-priority cues.
@@ -57,9 +57,9 @@ Oriole includes:
 
 You hear the meaningful events, not every twitch of the event stream.
 
-## What Oriole is not
+## What Finch is not
 
-Oriole does not play music or continuous audio. It does not read page content; your screen reader handles that. It does not block ads, modify pages, inject scripts, or observe what you do on websites. It does not replace your browser's notification system; it sits alongside it as an audio channel where the browser provides visual cues.
+Finch does not play music or continuous audio. It does not read page content; your screen reader handles that. It does not block ads, modify pages, inject scripts, or observe what you do on websites. It does not replace your browser's notification system; it sits alongside it as an audio channel where the browser provides visual cues.
 
 ## Privacy
 
@@ -83,7 +83,7 @@ Tab navigation in the options page uses the standard WAI-ARIA pattern: Tab into 
 
 ## Accessibility
 
-Accessibility is a hard gate for every change that touches the UI. Oriole targets WCAG AA with WCAG AAA where practical. The popup and options use accessible React primitives, live-region announcements are throttled to avoid overwhelming screen readers, and every interactive control has an explicit accessible name.
+Accessibility is a hard gate for every change that touches the UI. Finch targets WCAG AA with WCAG AAA where practical. The popup and options use accessible React primitives, live-region announcements are throttled to avoid overwhelming screen readers, and every interactive control has an explicit accessible name.
 
 ## Browser compatibility
 
@@ -91,6 +91,6 @@ Chrome 140 or later. Firefox 142 or later.
 
 ## Open source
 
-Oriole is released under the GNU Affero General Public License v3.0. Source code, documentation, and release history are available on GitHub at [https://github.com/akash07k/oriole](https://github.com/akash07k/oriole).
+Finch is released under the GNU Affero General Public License v3.0. Source code, documentation, and release history are available on GitHub at [https://github.com/akash07k/finch](https://github.com/akash07k/finch).
 
 Issue reports, theme submissions, and pull requests are welcome.

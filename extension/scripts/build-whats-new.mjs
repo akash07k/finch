@@ -251,7 +251,7 @@ function markdownToHtml(markdown) {
  */
 function fallbackHtml(version) {
   const tag = `v${escapeHtml(version)}`;
-  const releaseUrl = `https://github.com/akash07k/oriole/releases/tag/${tag}`;
+  const releaseUrl = `https://github.com/akash07k/finch/releases/tag/${tag}`;
   return [
     "<p>",
     `Release notes for ${tag} are not bundled with this build.`,
