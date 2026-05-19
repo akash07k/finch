@@ -1,7 +1,7 @@
 {
-  "name": "@butterswitch/logger",
+  "name": "@oriole/logger",
   "version": "1.0.0",
-  "description": "Structured logger with Console, IndexedDB, and WebSocket transports for ButterSwitch.",
+  "description": "Structured logger with Console, IndexedDB, and WebSocket transports for Oriole.",
   "author": "Akash Kakkar (https://github.com/akash07k/)",
   "license": "AGPL-3.0-only",
   "type": "module",

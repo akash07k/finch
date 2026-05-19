@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ModuleLoader } from "../loader.js";
 import { ModuleRegistry } from "../registry.js";
-import type { ButterSwitchModule, ModuleContext } from "../types.js";
+import type { OrioleModule, ModuleContext } from "../types.js";
 
 /**
  * Creates a mock module with spied lifecycle methods.
@@ -17,7 +17,7 @@ function createMockModule(
     failOnActivate?: boolean;
     failOnDispose?: boolean;
   },
-): ButterSwitchModule {
+): OrioleModule {
   return {
     id,
     name: `Test: ${id}`,

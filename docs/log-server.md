@@ -1,6 +1,6 @@
 # Log server
 
-`@butterswitch/log-server` is a development-only Node CLI that receives log entries from the extension over WebSocket, persists them per session, and serves a small accessible React UI over HTTP.
+`@oriole/log-server` is a development-only Node CLI that receives log entries from the extension over WebSocket, persists them per session, and serves a small accessible React UI over HTTP.
 
 It exists because Chrome's service-worker DevTools console is awkward to use with a screen reader; the log-server gives screen-reader-friendly real-time visibility.
 
@@ -10,7 +10,7 @@ It exists because Chrome's service-worker DevTools console is awkward to use wit
 pnpm log-server:dev                         # tsx, no build required
 pnpm log-server                             # build then run dist/bin.js
 
-butterswitch-log-server [options]
+oriole-log-server [options]
   --port <n>                  default 8089
   --host <ip>                 default 127.0.0.1 (localhost only)
   --buffer-size <n>           in-memory ring buffer for replay (default 1000)
@@ -24,7 +24,7 @@ Built on `commander`. The CLI parses options, opens the WebSocket + HTTP servers
 
 Four pieces cooperate at runtime:
 
-1. The ButterSwitch extension's `WebSocketTransport` sends JSON log entries to the log server.
+1. The Oriole extension's `WebSocketTransport` sends JSON log entries to the log server.
 2. `LogServer` in `ws-server.ts` receives them, tracks each client per-connection, and emits an `"entry"` event for the rest of the system.
 3. `SessionStore` in `session-store.ts` listens for that event and appends the entry to a JSONL file on disk.
 4. The HTTP API and the React web viewer (Express + `react-aria-components`) read from the session store. The viewer connects via HTTP for historical sessions and via WebSocket for live entries.
@@ -33,7 +33,7 @@ Four pieces cooperate at runtime:
 <summary>Visual flow</summary>
 
 ```text
-butterswitch extension
+oriole extension
       │ WebSocketTransport - JSON entry
       ▼
 LogServer (ws-server.ts)              ┌───────────────────────┐

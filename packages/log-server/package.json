@@ -1,12 +1,12 @@
 {
-  "name": "@butterswitch/log-server",
+  "name": "@oriole/log-server",
   "version": "1.0.0",
-  "description": "WebSocket log server with accessible web viewer for ButterSwitch.",
+  "description": "WebSocket log server with accessible web viewer for Oriole.",
   "author": "Akash Kakkar (https://github.com/akash07k/)",
   "license": "AGPL-3.0-only",
   "type": "module",
   "bin": {
-    "butterswitch-log-server": "./dist/bin.js"
+    "oriole-log-server": "./dist/bin.js"
   },
   "scripts": {
     "build": "vite build && vite build --config vite.web.config.ts",

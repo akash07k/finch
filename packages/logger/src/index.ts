@@ -1,7 +1,7 @@
 /**
  * @packageDocumentation
  *
- * `@butterswitch/logger` — structured, multi-transport logger for browser
+ * `@oriole/logger` — structured, multi-transport logger for browser
  * extensions and web applications.
  *
  * - {@link createLogger} — factory function for logger instances

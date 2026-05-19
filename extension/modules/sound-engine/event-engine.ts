@@ -20,7 +20,7 @@
 
 import type { EventDefinition } from "./types.js";
 import type { MessageBus } from "../../core/module-system/types.js";
-import type { Logger } from "@butterswitch/logger";
+import type { Logger } from "@oriole/logger";
 
 /**
  * Data published to the message bus for each browser event.

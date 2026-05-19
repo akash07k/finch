@@ -1,4 +1,4 @@
-# ButterSwitch documentation
+# Oriole documentation
 
 In-depth design documentation for the codebase. Source-code TSDoc explains how individual classes work; these documents explain why each subsystem exists and how the parts fit together.
 
@@ -9,8 +9,8 @@ In-depth design documentation for the codebase. Source-code TSDoc explains how i
 | [Architecture](./architecture.md)     | New contributor                | Monorepo layout, module system, runtime contexts, boot sequence, build and release pipeline         |
 | [Sound engine](./sound-engine.md)     | Anyone touching audio playback | Event registry, cooldown gate, priority preemption, theme manager, suppression model                |
 | [Audio backends](./audio-backends.md) | Anyone touching audio playback | Chrome offscreen vs Firefox direct, the `AudioBackend` interface, `HowlerPlayer`, race fixes        |
-| [Logger](./logger.md)                 | Anyone using the logger        | `@butterswitch/logger` core: dispatch, child loggers, transports (Console / IndexedDB / WebSocket)  |
-| [Log server](./log-server.md)         | Tool operators                 | `@butterswitch/log-server` CLI, WebSocket and HTTP server, session storage, accessible React viewer |
+| [Logger](./logger.md)                 | Anyone using the logger        | `@oriole/logger` core: dispatch, child loggers, transports (Console / IndexedDB / WebSocket)  |
+| [Log server](./log-server.md)         | Tool operators                 | `@oriole/log-server` CLI, WebSocket and HTTP server, session storage, accessible React viewer |
 | [Decisions log](./decisions.md)       | Maintainers                    | One short entry per significant design choice, in reverse-chronological order                       |
 | [Sound themes](./sound-themes.md)     | Theme authors                  | How to author a sound theme: manifest schema, fallback rules, sound design notes                    |
 

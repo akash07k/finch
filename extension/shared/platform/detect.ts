@@ -58,7 +58,7 @@ async function detectBrowser(chrome: ChromeRuntime | undefined): Promise<"chrome
 
 /**
  * Reads the manifest version from the extension's manifest.json.
- * Falls back to 3 if the API is unavailable (always MV3 for ButterSwitch).
+ * Falls back to 3 if the API is unavailable (always MV3 for Oriole).
  */
 function getManifestVersion(chrome: ChromeRuntime | undefined): number {
   try {

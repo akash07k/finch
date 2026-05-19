@@ -160,7 +160,7 @@ export class ChromeAudioBackend implements AudioBackend {
       await chrome.offscreen.createDocument({
         url: OFFSCREEN_DOCUMENT_PATH,
         reasons: [chrome.offscreen.Reason.AUDIO_PLAYBACK],
-        justification: "ButterSwitch needs to play audio cues for browser events.",
+        justification: "Oriole needs to play audio cues for browser events.",
       });
     })().finally(() => {
       this.creatingPromise = null;

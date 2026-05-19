@@ -24,7 +24,7 @@ function makeEntry(overrides: Partial<LogEntry> = {}): LogEntry {
 }
 
 function tempDir(): string {
-  return join(tmpdir(), `butterswitch-session-test-${Date.now()}-${Math.random()}`);
+  return join(tmpdir(), `oriole-session-test-${Date.now()}-${Math.random()}`);
 }
 
 describe("SessionStore", () => {

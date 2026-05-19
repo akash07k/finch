@@ -1,7 +1,7 @@
 /**
  * @module options/App
  *
- * ButterSwitch Options page — full settings interface.
+ * Oriole Options page — full settings interface.
  *
  * Organized into tabs: General, Sound Events, Themes, Logging.
  * Uses shadcn/ui Tabs (Radix) with default automatic activation —
@@ -35,7 +35,7 @@ const TAB_DEFINITIONS = [
 const MANIFEST = browser.runtime.getManifest();
 const VERSION = MANIFEST.version;
 const EXTENSION_NAME = MANIFEST.name;
-const RELEASE_URL = `https://github.com/akash07k/butterswitch/releases/tag/v${VERSION}`;
+const RELEASE_URL = `https://github.com/akash07k/oriole/releases/tag/v${VERSION}`;
 
 /** Options page root — tabbed settings interface with local keyboard shortcuts. */
 export default function App() {
@@ -60,7 +60,7 @@ export default function App() {
         if (!announcedWelcomeRef.current) {
           announcedWelcomeRef.current = true;
           announce(
-            "Welcome to ButterSwitch. A welcome banner is available above the tabs.",
+            "Welcome to Oriole. A welcome banner is available above the tabs.",
             "polite",
           );
         }
@@ -160,7 +160,7 @@ export default function App() {
     <>
       <main className="max-w-4xl mx-auto p-6">
         <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold mb-6">
-          ButterSwitch Options
+          Oriole Options
         </h1>
 
         {showWelcome && (
@@ -170,10 +170,10 @@ export default function App() {
             className="mb-6 border rounded-lg p-4 space-y-2"
           >
             <h2 id="welcome-heading" className="text-lg font-semibold">
-              Welcome to ButterSwitch
+              Welcome to Oriole
             </h2>
             <p className="text-muted-foreground">
-              ButterSwitch plays audio cues for browser events — tabs, bookmarks, downloads, and
+              Oriole plays audio cues for browser events — tabs, bookmarks, downloads, and
               navigation. Sounds play automatically as you browse. Use the General tab to adjust
               volume and mute. Use Sound Events to enable or disable individual events. Press
               Shift+? for keyboard shortcuts.

@@ -1,6 +1,6 @@
 /**
  * Shape of a log entry received over WebSocket.
- * Mirrors @butterswitch/logger's LogEntry — duplicated here
+ * Mirrors @oriole/logger's LogEntry — duplicated here
  * to avoid a runtime dependency on the logger package.
  */
 export interface LogEntry {

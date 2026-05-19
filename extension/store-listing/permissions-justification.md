@@ -9,11 +9,11 @@ matching entry here in the same commit.
 
 # Permission justifications
 
-ButterSwitch requests the following browser APIs. Each one is used only to listen for the event the user chose to hear.
+Oriole requests the following browser APIs. Each one is used only to listen for the event the user chose to hear.
 
 ## `tabs`
 
-Listens for tab lifecycle events: tab created, tab closed, tab activated, tab moved, tab attached, tab detached, tab title changed, tab audio started or stopped, tab muted or unmuted. Without this permission ButterSwitch cannot play sounds for any tab-related event - which is more than half of the defaults.
+Listens for tab lifecycle events: tab created, tab closed, tab activated, tab moved, tab attached, tab detached, tab title changed, tab audio started or stopped, tab muted or unmuted. Without this permission Oriole cannot play sounds for any tab-related event - which is more than half of the defaults.
 
 ## `bookmarks`
 
@@ -21,7 +21,7 @@ Listens for bookmark lifecycle events: bookmark added, bookmark removed, bookmar
 
 ## `downloads`
 
-Listens for download lifecycle events: download started, download complete, download failed, download paused, download resumed. Used only to trigger the matching audio cue. ButterSwitch never reads download contents.
+Listens for download lifecycle events: download started, download complete, download failed, download paused, download resumed. Used only to trigger the matching audio cue. Oriole never reads download contents.
 
 ## `webNavigation`
 
@@ -33,15 +33,15 @@ Stores the user's configuration (volumes, per-event enable/disable, active theme
 
 ## `notifications`
 
-Shows a short visual confirmation when the mute shortcut is pressed ("ButterSwitch muted" / "ButterSwitch unmuted"). Gives sighted users feedback for a shortcut that otherwise only produces audio silence.
+Shows a short visual confirmation when the mute shortcut is pressed ("Oriole muted" / "Oriole unmuted"). Gives sighted users feedback for a shortcut that otherwise only produces audio silence.
 
 ## `idle`
 
-Listens for system state changes: active, idle, locked. Lets ButterSwitch play an audio cue when the computer wakes from sleep or when the session locks - a small accessibility assist for users who cannot rely on the visual lock screen to know the state changed.
+Listens for system state changes: active, idle, locked. Lets Oriole play an audio cue when the computer wakes from sleep or when the session locks - a small accessibility assist for users who cannot rely on the visual lock screen to know the state changed.
 
 ## Optional permissions
 
-The next three are declared under `optional_permissions` rather than the static list, so a fresh install does not ask for them. ButterSwitch requests each one at runtime only when the user toggles on the matching Tier 2 event in the Sound Events tab. Declining the prompt leaves the event disabled.
+The next three are declared under `optional_permissions` rather than the static list, so a fresh install does not ask for them. Oriole requests each one at runtime only when the user toggles on the matching Tier 2 event in the Sound Events tab. Declining the prompt leaves the event disabled.
 
 ## `history` (optional)
 
@@ -57,8 +57,8 @@ Listens for cookie-change events. Off by default in Tier 2; used only by power u
 
 ## `offscreen` (Chrome only)
 
-Chrome's MV3 service worker has no DOM and cannot play audio directly. ButterSwitch creates a hidden offscreen document solely to host an `<audio>` element for playback. No UI, no user-visible window - purely an implementation detail of Chrome's service-worker model. Firefox builds do not include this permission because Firefox's background page already has DOM access.
+Chrome's MV3 service worker has no DOM and cannot play audio directly. Oriole creates a hidden offscreen document solely to host an `<audio>` element for playback. No UI, no user-visible window - purely an implementation detail of Chrome's service-worker model. Firefox builds do not include this permission because Firefox's background page already has DOM access.
 
 ## No host permissions
 
-ButterSwitch does not request `host_permissions` or any "access all websites" permission. It cannot read page content, inject scripts, observe network requests, or see form data.
+Oriole does not request `host_permissions` or any "access all websites" permission. It cannot read page content, inject scripts, observe network requests, or see form data.

@@ -147,7 +147,7 @@ export function LoggingTab() {
       const a = document.createElement("a");
       a.href = url;
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-      a.download = `butterswitch-logs-${timestamp}.${format}`;
+      a.download = `oriole-logs-${timestamp}.${format}`;
       // Append to DOM for Firefox compatibility, then clean up
       document.body.appendChild(a);
       a.click();

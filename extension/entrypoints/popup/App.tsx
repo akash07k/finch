@@ -1,7 +1,7 @@
 /**
  * @module popup/App
  *
- * ButterSwitch popup UI — the primary quick-access interface.
+ * Oriole popup UI — the primary quick-access interface.
  *
  * Opens when the user clicks the extension icon in the toolbar.
  * Provides immediate access to:
@@ -177,12 +177,12 @@ export default function App() {
 
   return (
     <main
-      aria-label="ButterSwitch controls"
+      aria-label="Oriole controls"
       aria-keyshortcuts="Shift+? Alt+T"
       className="w-[320px] p-4 space-y-4"
     >
       <h1 ref={headingRef} tabIndex={-1} className="text-lg font-bold">
-        ButterSwitch
+        Oriole
       </h1>
 
       {/* Sound Controls — section so the heading is announced once on entry, */}

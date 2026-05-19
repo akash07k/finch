@@ -39,7 +39,7 @@ jobs:
 
       # --ignore-scripts skips the extension's `postinstall: wxt prepare`
       # hook. That hook loads wxt.config.ts which transitively imports
-      # @butterswitch/logger — a workspace package that resolves to
+      # @oriole/logger — a workspace package that resolves to
       # packages/logger/dist/index.js via its `exports` field. On a fresh
       # clone the dist/ doesn't exist yet, so the import fails with
       # "No exports main defined". We build the logger first, then run

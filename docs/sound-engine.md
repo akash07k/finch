@@ -133,7 +133,7 @@ Theme manifests live as JSON at `extension/public/sounds/<theme-id>/theme.json`.
 
 ## Sound engine module
 
-[`extension/modules/sound-engine/index.ts`](../extension/modules/sound-engine/index.ts) is the `ButterSwitchModule` implementation. It wires the event engine, theme manager, audio backend, and cooldown gate together.
+[`extension/modules/sound-engine/index.ts`](../extension/modules/sound-engine/index.ts) is the `OrioleModule` implementation. It wires the event engine, theme manager, audio backend, and cooldown gate together.
 
 `handleBrowserEvent` is the hot path. It:
 

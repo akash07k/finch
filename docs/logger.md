@@ -1,6 +1,6 @@
 # Logger
 
-`@butterswitch/logger` is the structured logger used by the extension. It is a small, dependency-free package built around three primitives: a `Logger` interface, a `Transport` interface, and a default `LogEntry` shape.
+`@oriole/logger` is the structured logger used by the extension. It is a small, dependency-free package built around three primitives: a `Logger` interface, a `Transport` interface, and a default `LogEntry` shape.
 
 Source layout under `packages/logger/src/`:
 
@@ -46,7 +46,7 @@ A thin wrapper that maps `LogLevel` to `console.debug`, `info`, `warn`, `error`.
 
 ## IndexedDBTransport
 
-Persists entries to `butterswitch-logs` (database name from `CONFIG.logger.idbName`). Rotation: when the entry count exceeds `CONFIG.logger.idbMaxEntries` (default 10,000), the oldest 10% are deleted. A `rotating` flag prevents concurrent rotate calls from racing each other during burst logging.
+Persists entries to `oriole-logs` (database name from `CONFIG.logger.idbName`). Rotation: when the entry count exceeds `CONFIG.logger.idbMaxEntries` (default 10,000), the oldest 10% are deleted. A `rotating` flag prevents concurrent rotate calls from racing each other during burst logging.
 
 API:
 
@@ -59,7 +59,7 @@ The transport opens its own IDB connection on `initialize()` and closes it on `d
 
 ## WebSocketTransport
 
-Forwards entries to a log server (`@butterswitch/log-server`) over WebSocket. The transport is opt-in: the extension only adds it after the user enables log streaming in the options page.
+Forwards entries to a log server (`@oriole/log-server`) over WebSocket. The transport is opt-in: the extension only adds it after the user enables log streaming in the options page.
 
 Behaviour:
 

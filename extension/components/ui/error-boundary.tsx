@@ -40,7 +40,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error(`[ButterSwitch ${this.props.context ?? "UI"}] Rendering error:`, error, info);
+    console.error(`[Oriole ${this.props.context ?? "UI"}] Rendering error:`, error, info);
   }
 
   componentDidUpdate(_: ErrorBoundaryProps, prevState: ErrorBoundaryState): void {
@@ -56,7 +56,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <div role="alert">
             <h1 className="text-lg font-bold mb-2">Something went wrong</h1>
             <p className="text-muted-foreground mb-4">
-              ButterSwitch encountered an error. Try reloading the extension.
+              Oriole encountered an error. Try reloading the extension.
             </p>
             {/* Visible heading, sr-only so it doesn't add visual noise but */}
             {/* still names the pre for screen readers via aria-labelledby. */}

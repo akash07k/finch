@@ -1,4 +1,4 @@
-# butterswitch-extension
+# oriole-extension
 
 The WXT browser extension. The repository root has the project README, contributing guide, and license - see [`../README.md`](../README.md).
 

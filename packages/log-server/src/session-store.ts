@@ -12,7 +12,7 @@ import type { LogEntry } from "./types.js";
 
 /** Configuration options for {@link SessionStore}. */
 export interface SessionStoreConfig {
-  /** Directory for session files (default: ~/.butterswitch-logs) */
+  /** Directory for session files (default: ~/.oriole-logs) */
   logDir?: string;
   /** Max session files to keep (default: 50) */
   maxSessions?: number;
@@ -28,7 +28,7 @@ export interface SessionInfo {
   entryCount: number;
 }
 
-const DEFAULT_LOG_DIR = join(homedir(), ".butterswitch-logs", "sessions");
+const DEFAULT_LOG_DIR = join(homedir(), ".oriole-logs", "sessions");
 const DEFAULT_MAX_SESSIONS = 50;
 
 /**

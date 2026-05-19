@@ -1,7 +1,7 @@
 // Guarded postinstall for the extension.
 //
 // `wxt prepare` loads wxt.config.ts, which transitively imports
-// `@butterswitch/logger`. That package's `exports` field resolves to
+// `@oriole/logger`. That package's `exports` field resolves to
 // `packages/logger/dist/index.js`, and that dist is produced by
 // `pnpm build:logger` — NOT by `pnpm install`. On a fresh clone the
 // dist doesn't exist yet, so an unguarded `wxt prepare` fails with

@@ -71,7 +71,7 @@ importers:
 
   extension:
     dependencies:
-      '@butterswitch/logger':
+      '@oriole/logger':
         specifier: workspace:*
         version: link:../packages/logger
       '@radix-ui/react-select':

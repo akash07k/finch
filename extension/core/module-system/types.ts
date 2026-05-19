@@ -1,25 +1,25 @@
 /**
  * @module module-system/types
  *
- * Core type definitions for the ButterSwitch module system.
+ * Core type definitions for the Oriole module system.
  *
  * Every feature (sound engine, inspector, DOM persist, bookmarks, AI,
- * and more) implements the ButterSwitchModule interface. This ensures consistent
+ * and more) implements the OrioleModule interface. This ensures consistent
  * lifecycle management, dependency resolution, and user-controllable
  * activation across all features.
  */
 
-import type { Logger } from "@butterswitch/logger";
+import type { Logger } from "@oriole/logger";
 
 /**
- * Base interface for all ButterSwitch feature modules.
+ * Base interface for all Oriole feature modules.
  *
  * Each feature implements this interface to participate in the
  * module lifecycle: initialize → activate → deactivate → dispose.
  *
  * @example
  * ```ts
- * const soundEngine: ButterSwitchModule = {
+ * const soundEngine: OrioleModule = {
  *   id: "sound-engine",
  *   name: "Sound Engine",
  *   version: "1.0.0",
@@ -30,7 +30,7 @@ import type { Logger } from "@butterswitch/logger";
  * };
  * ```
  */
-export interface ButterSwitchModule {
+export interface OrioleModule {
   /** Unique module identifier (e.g., "sound-engine"). Used as a key everywhere. */
   readonly id: string;
 
@@ -114,7 +114,7 @@ export type ModuleState =
  */
 export interface ModuleEntry {
   /** The module instance. */
-  module: ButterSwitchModule;
+  module: OrioleModule;
 
   /** Current lifecycle state. */
   state: ModuleState;
@@ -162,7 +162,7 @@ export interface PlatformInfo {
   /** Browser identifier. */
   browser: "chrome" | "firefox";
 
-  /** Manifest version (always 3 for ButterSwitch). */
+  /** Manifest version (always 3 for Oriole). */
   manifestVersion: number;
 
   /** Browser version string. */

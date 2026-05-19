@@ -1,7 +1,7 @@
 /**
  * @module background
  *
- * ButterSwitch service worker — the extension's entry point.
+ * Oriole service worker — the extension's entry point.
  *
  * This is where the module system boots up. On extension load:
  * 1. Creates the logger with a Console transport
@@ -28,8 +28,8 @@ import {
   WebSocketTransport,
   IndexedDBTransport,
   LogExporter,
-} from "@butterswitch/logger";
-import type { Logger } from "@butterswitch/logger";
+} from "@oriole/logger";
+import type { Logger } from "@oriole/logger";
 import { ModuleRegistry } from "../core/module-system/registry.js";
 import { ModuleLoader } from "../core/module-system/loader.js";
 import { MessageBusImpl } from "../core/message-bus/bus.js";
@@ -53,7 +53,7 @@ export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(async (details) => {
     if (details.reason === "install") {
       browser.runtime.openOptionsPage();
-      console.log("[ButterSwitch] First install — opened options page for onboarding");
+      console.log("[Oriole] First install — opened options page for onboarding");
       return;
     }
     if (details.reason !== "update") return;
@@ -68,7 +68,7 @@ export default defineBackground(() => {
       DEFAULT_SETTINGS.general.showWhatsNewOnUpdate;
     if (!optedIn) {
       console.log(
-        `[ButterSwitch] Update ${previousVersion} -> ${currentVersion}; What's New disabled by user`,
+        `[Oriole] Update ${previousVersion} -> ${currentVersion}; What's New disabled by user`,
       );
       return;
     }
@@ -79,10 +79,10 @@ export default defineBackground(() => {
     try {
       await browser.tabs.create({ url });
       console.log(
-        `[ButterSwitch] Update ${previousVersion} -> ${currentVersion}; opened What's New page`,
+        `[Oriole] Update ${previousVersion} -> ${currentVersion}; opened What's New page`,
       );
     } catch (error) {
-      console.error("[ButterSwitch] Failed to open What's New tab:", error);
+      console.error("[Oriole] Failed to open What's New tab:", error);
     }
   });
 
@@ -96,17 +96,17 @@ export default defineBackground(() => {
     //    and log export. WebSocket transport is added later if the user
     //    enables log streaming (to avoid Chrome errors from failed connections).
     const idbTransport = new IndexedDBTransport({
-      dbName: "butterswitch-logs",
+      dbName: "oriole-logs",
       maxEntries: CONFIG.logger.idbMaxEntries,
       storeName: CONFIG.logger.idbStoreName,
     });
     const logger = createLogger({
       level: LogLevel.DEBUG,
-      tag: "butterswitch",
+      tag: "oriole",
       transports: [new ConsoleTransport(), idbTransport],
     });
 
-    logger.info("ButterSwitch starting up...");
+    logger.info("Oriole starting up...");
 
     try {
       // 2. Detect the platform
@@ -170,7 +170,7 @@ export default defineBackground(() => {
         }
       }
 
-      logger.info("ButterSwitch ready", {
+      logger.info("Oriole ready", {
         activeModules: enabledModules.length,
         platform: platform.browser,
       });
@@ -206,14 +206,14 @@ export default defineBackground(() => {
         loader
           .disposeAll()
           .catch((e: unknown) => {
-            console.error("[ButterSwitch] Module disposal error:", e);
+            console.error("[Oriole] Module disposal error:", e);
           })
           .finally(() => {
             settings.dispose();
           });
       });
     } catch (error) {
-      logger.fatal("ButterSwitch failed to start", error instanceof Error ? error : undefined);
+      logger.fatal("Oriole failed to start", error instanceof Error ? error : undefined);
     }
   }
 
@@ -267,7 +267,7 @@ export default defineBackground(() => {
         sender: chrome.runtime.MessageSender,
         sendResponse: (response: unknown) => void,
       ) => {
-        // Reject anything from another extension. ButterSwitch ships no
+        // Reject anything from another extension. Oriole ships no
         // content scripts and isn't externally_connectable, so messages
         // whose sender.id doesn't match our own runtime id come from a
         // foreign extension probing this background. Drop them; none of
@@ -363,7 +363,7 @@ export default defineBackground(() => {
           const stored = await browser.storage.local.get("general.muted");
           const wasMuted = (stored["general.muted"] as boolean) ?? false;
           await browser.storage.local.set({ "general.muted": !wasMuted });
-          const message = wasMuted ? "ButterSwitch unmuted" : "ButterSwitch muted";
+          const message = wasMuted ? "Oriole unmuted" : "Oriole muted";
           // Show badge text on extension icon (action for MV3, browserAction for MV2)
           const badgeApi = browser.action ?? browser.browserAction;
           if (badgeApi) {
@@ -375,7 +375,7 @@ export default defineBackground(() => {
             await browser.notifications.create({
               type: "basic",
               iconUrl: chrome.runtime.getURL("icon/128.png"),
-              title: "ButterSwitch",
+              title: "Oriole",
               message,
             });
           } catch (e) {
@@ -398,7 +398,7 @@ export default defineBackground(() => {
             await browser.notifications.create({
               type: "basic",
               iconUrl: browser.runtime.getURL("/icon/128.png"),
-              title: "ButterSwitch",
+              title: "Oriole",
               message: `Mute when unfocused: ${next ? "enabled" : "disabled"}`,
             });
           } catch (e) {
@@ -536,6 +536,6 @@ export default defineBackground(() => {
   // Cannot use top-level await in a service worker, so we
   // call the async function and catch errors.
   bootstrap().catch((error) => {
-    console.error("[ButterSwitch] Fatal bootstrap error:", error);
+    console.error("[Oriole] Fatal bootstrap error:", error);
   });
 });

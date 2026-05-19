@@ -1,7 +1,7 @@
 /**
  * @module settings/defaults
  *
- * Default values for all ButterSwitch settings.
+ * Default values for all Oriole settings.
  *
  * These defaults are used when a setting has never been set by the user.
  * They represent the out-of-the-box experience — a sensible starting
@@ -11,11 +11,11 @@
  * developers can tune ship-time defaults from a single file.
  */
 
-import type { ButterSwitchSettings } from "./types.js";
+import type { OrioleSettings } from "./types.js";
 import { CONFIG } from "../../config/index.js";
 
 /** Default values for all extension settings. */
-export const DEFAULT_SETTINGS: ButterSwitchSettings = {
+export const DEFAULT_SETTINGS: OrioleSettings = {
   general: {
     masterVolume: CONFIG.settings.masterVolume,
     activeTheme: CONFIG.settings.activeTheme,

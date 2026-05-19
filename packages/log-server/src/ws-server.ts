@@ -42,7 +42,7 @@ const DEFAULT_MAX_PAYLOAD = 1024 * 1024; // 1 MiB
 
 /**
  * Inclusive upper bound for a valid LogLevel value. Mirrors
- * `LogLevel.FATAL` from `@butterswitch/logger` (0=DEBUG..4=FATAL).
+ * `LogLevel.FATAL` from `@oriole/logger` (0=DEBUG..4=FATAL).
  * Hardcoded so the log-server has no runtime dependency on the logger
  * package; the level enum has not changed since the project began and
  * the test suite would catch a drift.
@@ -200,7 +200,7 @@ export class LogServer extends EventEmitter {
    *   loaded from http://localhost:8089 has Origin http://localhost:8089
    *   and must connect to the WS on the same port.
    * - **Browser extensions** (chrome-extension://, moz-extension://):
-   *   allowed. ButterSwitch's WebSocketTransport runs from one of these
+   *   allowed. Oriole's WebSocketTransport runs from one of these
    *   origins.
    * - **Anything else**: rejected. A malicious page on evil.com can
    *   still attempt to open a WebSocket to localhost (CORS does not
@@ -279,7 +279,7 @@ export class LogServer extends EventEmitter {
 
     if (!this.config.webDir) {
       res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end("butterswitch-log-server is running. No web viewer built.");
+      res.end("oriole-log-server is running. No web viewer built.");
       return;
     }
 

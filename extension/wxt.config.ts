@@ -2,7 +2,7 @@ import { defineConfig } from "wxt";
 import tailwindcss from "@tailwindcss/vite";
 
 /**
- * WXT configuration for the ButterSwitch browser extension.
+ * WXT configuration for the Oriole browser extension.
  *
  * WXT uses file-based entrypoints — each file in entrypoints/ becomes
  * a background script, popup, options page, content script, etc.
@@ -20,7 +20,7 @@ export default defineConfig({
   }),
   zip: {
     // Firefox AMO requires source code for review. Since this is a monorepo
-    // and the extension depends on @butterswitch/logger (workspace package),
+    // and the extension depends on @oriole/logger (workspace package),
     // the sources zip must include the entire repo root — not just extension/.
     sourcesRoot: "..",
     excludeSources: [
@@ -38,10 +38,10 @@ export default defineConfig({
     ],
   },
   manifest: {
-    name: "ButterSwitch",
+    name: "Oriole",
     description:
       "Hear your browser — audio cues for tabs, bookmarks, downloads, and navigation. A richer browsing experience for everyone.",
-    homepage_url: "https://github.com/akash07k/butterswitch",
+    homepage_url: "https://github.com/akash07k/oriole",
     minimum_chrome_version: "140",
     // Persistent development key — keeps the Chrome extension ID stable
     // across unpacked loads. Remove before Chrome Web Store submission.
@@ -73,7 +73,7 @@ export default defineConfig({
       },
       "open-options": {
         suggested_key: { default: "Alt+Shift+U" },
-        description: "Open ButterSwitch options page",
+        description: "Open Oriole options page",
       },
     },
     browser_specific_settings: {

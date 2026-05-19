@@ -3,8 +3,8 @@
  *
  * The sound engine module — maps browser events to audio playback.
  *
- * This is the first feature module of ButterSwitch. It implements
- * the ButterSwitchModule interface and orchestrates:
+ * This is the first feature module of Oriole. It implements
+ * the OrioleModule interface and orchestrates:
  *
  * 1. **Audio backend** — platform-specific playback (Chrome offscreen / Firefox direct)
  * 2. **Event engine** — wires browser API listeners from the event registry
@@ -15,7 +15,7 @@
  * plays via audio backend.
  */
 
-import type { ButterSwitchModule, ModuleContext } from "../../core/module-system/types.js";
+import type { OrioleModule, ModuleContext } from "../../core/module-system/types.js";
 import type { AudioBackend } from "./audio-backends/types.js";
 import { EventEngine, BROWSER_EVENT_CHANNEL, type BrowserEventMessage } from "./event-engine.js";
 import { ThemeManager } from "./theme-manager.js";
@@ -43,7 +43,7 @@ interface EventConfig {
 }
 
 /**
- * Sound engine module — implements ButterSwitchModule.
+ * Sound engine module — implements OrioleModule.
  *
  * Lifecycle:
  * - **initialize**: Load theme, wire event listeners
@@ -55,7 +55,7 @@ interface EventConfig {
  * initialize() is called. This is done by the background script
  * to avoid bundling Howler.js into Chrome's service worker.
  */
-export class SoundEngineModule implements ButterSwitchModule {
+export class SoundEngineModule implements OrioleModule {
   readonly id = SOUND_ENGINE_MODULE_ID;
   readonly name = "Sound Engine";
   readonly version = "1.0.0";

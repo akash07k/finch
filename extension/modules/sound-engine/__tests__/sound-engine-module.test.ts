@@ -23,7 +23,7 @@ import { InMemorySettingsStore } from "../../../core/settings/store.js";
 import { CONFIG } from "../../../config/index.js";
 import type { AudioBackend, PlayResult } from "../audio-backends/types.js";
 import type { ModuleContext, PlatformInfo } from "../../../core/module-system/types.js";
-import type { Logger } from "@butterswitch/logger";
+import type { Logger } from "@oriole/logger";
 
 type LoggerMock = Logger & { debug: ReturnType<typeof vi.fn> };
 

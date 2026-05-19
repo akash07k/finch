@@ -1,7 +1,7 @@
 /**
  * @module a11y/focus
  *
- * Focus management utilities for the ButterSwitch extension.
+ * Focus management utilities for the Oriole extension.
  *
  * Currently fills one gap that component libraries (Radix, shadcn/ui)
  * don't cover: moving focus into a freshly-rendered section after a

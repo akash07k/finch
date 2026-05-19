@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 /**
- * Vitest configuration for the ButterSwitch extension.
+ * Vitest configuration for the Oriole extension.
  *
  * Uses jsdom environment for tests that need DOM APIs (a11y utilities).
  * Browser extension APIs (like chrome.*) are mocked in individual tests.

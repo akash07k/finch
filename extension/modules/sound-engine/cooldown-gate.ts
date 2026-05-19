@@ -37,7 +37,7 @@
  * would have been suppressed by the cooldown regardless.
  */
 
-import type { Logger } from "@butterswitch/logger";
+import type { Logger } from "@oriole/logger";
 
 /** Tunable thresholds for the gate. */
 interface CooldownGateConfig {

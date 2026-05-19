@@ -236,7 +236,7 @@ function App() {
       </a>
 
       <header role="banner">
-        <h1>ButterSwitch Log Viewer</h1>
+        <h1>Oriole Log Viewer</h1>
         <StatusBar
           connected={connected}
           autoScroll={autoScroll}

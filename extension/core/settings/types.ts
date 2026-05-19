@@ -1,7 +1,7 @@
 /**
  * @module settings/types
  *
- * Type definitions for the ButterSwitch settings schema.
+ * Type definitions for the Oriole settings schema.
  *
  * These types define the shape of all user-configurable settings.
  * The settings are stored in the browser's extension storage via
@@ -9,13 +9,13 @@
  * interface in their ModuleContext.
  */
 
-import type { LogLevel } from "@butterswitch/logger";
+import type { LogLevel } from "@oriole/logger";
 
 /**
  * Root settings object for the entire extension.
  * Each section corresponds to a tab in the options page.
  */
-export interface ButterSwitchSettings {
+export interface OrioleSettings {
   general: GeneralSettings;
   sounds: SoundSettings;
   themes: ThemeSettings;

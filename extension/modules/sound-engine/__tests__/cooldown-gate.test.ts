@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { CooldownGate } from "../cooldown-gate.js";
-import type { Logger } from "@butterswitch/logger";
+import type { Logger } from "@oriole/logger";
 
 /**
  * Returns a logger whose every level method is a vi.fn() spy. The cooldown

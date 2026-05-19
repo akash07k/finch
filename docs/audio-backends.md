@@ -1,6 +1,6 @@
 # Audio backends
 
-Chrome and Firefox handle audio playback in fundamentally different ways. ButterSwitch papers over the difference with a shared `AudioBackend` interface and two implementations.
+Chrome and Firefox handle audio playback in fundamentally different ways. Oriole papers over the difference with a shared `AudioBackend` interface and two implementations.
 
 ## The AudioBackend interface
 
