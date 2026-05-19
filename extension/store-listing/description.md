@@ -77,7 +77,7 @@ Global (work from any tab or window):
 
 - Alt+M — toggle mute
 - Alt+Shift+M — toggle mute-when-unfocused
-- Alt+Shift+I — open the options page
+- Alt+Shift+C — open the options page
 
 Inside the popup and options page:
 

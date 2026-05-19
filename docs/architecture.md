@@ -107,7 +107,7 @@ The dynamic import of the audio backend in `background.ts` keeps Howler.js out o
 
 React 19, Radix UI primitives, Tailwind 4. shadcn/ui "new-york" components live under `extension/components/ui/`. Three a11y conventions matter:
 
-- Tab navigation uses the WAI-ARIA Tabs keyboard model (Tab into the list, then Left/Right/Home/End). `hotkeys-js` covers two local shortcuts (`Alt+T` cycle theme, `Shift+?` help) plus the global `Alt+M` (mute) and `Alt+Shift+I` (open options) registered with `browser.commands`.
+- Tab navigation uses the WAI-ARIA Tabs keyboard model (Tab into the list, then Left/Right/Home/End). `hotkeys-js` covers two local shortcuts (`Alt+T` cycle theme, `Shift+?` help) plus the global `Alt+M` (mute) and `Alt+Shift+C` (open options) registered with `browser.commands`.
 - `@react-aria/live-announcer` provides `announce(message, "polite" | "assertive")` for status changes, export notifications, and the welcome banner.
 - `extension/shared/a11y/focus.ts` provides focus helpers; the options page uses `requestAnimationFrame` to focus a heading after dismissing modal-like UI.
 
@@ -139,11 +139,11 @@ Both layers read and write the same underlying keys in the same storage area. Th
 
 Vitest. Three test scopes:
 
-| Package              | Environment | Pattern                                                                                          |
-| -------------------- | ----------- | ------------------------------------------------------------------------------------------------ |
-| `@finch/logger`      | Node        | `__tests__/*.test.ts` colocated with source                                                      |
-| `@finch/log-server`  | Node        | `__tests__/*.test.ts` colocated with source                                                      |
-| `finch-extension`    | jsdom       | `core/**/__tests__/*.test.ts`, `shared/**/__tests__/*.test.ts`, `modules/**/__tests__/*.test.ts` |
+| Package             | Environment | Pattern                                                                                          |
+| ------------------- | ----------- | ------------------------------------------------------------------------------------------------ |
+| `@finch/logger`     | Node        | `__tests__/*.test.ts` colocated with source                                                      |
+| `@finch/log-server` | Node        | `__tests__/*.test.ts` colocated with source                                                      |
+| `finch-extension`   | jsdom       | `core/**/__tests__/*.test.ts`, `shared/**/__tests__/*.test.ts`, `modules/**/__tests__/*.test.ts` |
 
 The extension uses jsdom because some non-UI code touches DOM-shaped APIs. The `WxtVitest()` plugin from `wxt/testing/vitest-plugin` auto-polyfills browser APIs via `fakeBrowser` from `wxt/testing`, which provides in-memory stubs for `browser.storage`, `browser.runtime`, and event objects like `browser.windows.onFocusChanged`. Tests that need to fire browser events use `fakeBrowser.<api>.trigger()` rather than manual stubs.
 

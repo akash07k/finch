@@ -72,13 +72,13 @@ export default defineConfig({
         description: "Toggle muting sounds when browser is unfocused",
       },
       "open-options": {
-        suggested_key: { default: "Alt+Shift+I" },
+        suggested_key: { default: "Alt+Shift+C" },
         description: "Open Finch options page",
       },
     },
     browser_specific_settings: {
       gecko: {
-        id: "{a6e584fb-ab9a-4299-8be4-9beb56d39a03}",
+        id: "{e5b3402e-127a-4eff-8529-77c5d34363f6}",
         strict_min_version: "142.0",
         // Required by Firefox AMO for new extensions (WXT types don't include it yet)
         ...({

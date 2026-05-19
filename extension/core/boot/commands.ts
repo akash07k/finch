@@ -3,7 +3,7 @@
  *
  * Global keyboard shortcut handler. `browser.commands` fires on the
  * keystrokes registered in `wxt.config.ts` (Alt+M, Alt+Shift+M,
- * Alt+Shift+I) regardless of which tab has focus, so the dispatch
+ * Alt+Shift+C) regardless of which tab has focus, so the dispatch
  * lives in the background script.
  *
  * The handler reads and writes typed WXT storage items directly
