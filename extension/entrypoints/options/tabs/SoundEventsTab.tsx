@@ -37,6 +37,7 @@ import { useConfirmAction } from "@/shared/hooks/use-confirm-action";
 import { pickOptionalPermissions, requestPermissions } from "@/shared/permissions/request";
 import { EVENT_REGISTRY } from "@/modules/sound-engine/event-registry";
 import { eventConfigItem, type StoredEventConfig } from "@/core/settings/items";
+import { validateEventConfig } from "@/core/settings/validate";
 import type { EventDefinition } from "@/modules/sound-engine/types";
 
 /** Events supported on the current browser (filtered at build time). */
@@ -190,8 +191,20 @@ export function SoundEventsTab() {
     return () => clearTimeout(timer);
   }, [filteredEvents.length]);
 
-  /** Save a single event config to storage. */
+  /**
+   * Save a single event config to storage after schema validation.
+   * Invalid values (out-of-range volume or pitch from a slider bug)
+   * are rejected with an assertive announcement so the user sees the
+   * failure rather than silently inheriting a clamped value at read
+   * time.
+   */
   const saveEventConfig = (eventId: string, config: StoredEventConfig) => {
+    const result = validateEventConfig(config);
+    if (!result.ok) {
+      announce(`Could not save: ${result.error}`, "assertive");
+      sendLog("warn", "Rejected invalid event config", { eventId, error: result.error });
+      return;
+    }
     eventConfigItem(eventId).setValue(config);
   };
 
