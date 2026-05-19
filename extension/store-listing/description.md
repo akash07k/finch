@@ -8,82 +8,87 @@ Check character count before publishing:
     wc -c extension/store-listing/description.md
 -->
 
-# Finch - audio cues for browser events
+# Finch — audio cues for browser events
 
-Finch plays short audio cues when things happen in your browser. A tab opens. A download finishes. A page loads. A bookmark gets saved. Instead of waiting for a visual indicator or wondering whether an action went through, you hear it.
+Finch plays short audio cues when things happen in your browser. A tab opens. A download finishes. A page loads. A bookmark gets saved. Instead of checking the screen for visual indicators, you hear it.
+
+Named after the songbird — small, distinct calls, one per event.
 
 ## Who this is for
 
-The primary audience is blind and low-vision users. Screen readers announce content well, but they often miss the smaller state changes that sighted users pick up from visual motion: a download icon flashing, a tab indicator changing, a bookmark icon turning yellow. Finch fills that gap with short audio cues per event.
+The primary audience is blind and low-vision users. Screen readers announce page content well, but they miss the smaller state changes that sighted users catch from visual motion: a download icon flashing, a tab indicator changing, a bookmark turning yellow. Finch fills that gap with short audio cues.
 
-If you are not a screen-reader user, Finch is still useful as a non-visual channel for what your browser is doing. Useful when you have many tabs open, slow pages loading in the background, or downloads running while you work in another window.
+If you're not a screen-reader user, Finch is still useful as ambient feedback for what your browser is doing — handy when pages load in background tabs, downloads run while you work in another window, or you have too many tabs to track visually.
 
 ## What you hear
 
-64 events across three tiers. Pick the level of detail you want.
+63 events across three tiers. Pick the detail level you want.
 
-Tier 1 (Essential, 25 events, on by default): tab created, tab closed, tab switched, page loading, page loaded, navigation start, download start, download complete, download failed, bookmark added, bookmark removed, window opened, window closed, window focused, tab title changed, extension installed, and a handful more. The events most people want.
+Tier 1 — Essential (26 events enabled by default): tab created, tab closed, tab switched, page loading, page loaded, navigation error, download started, download complete, download failed, bookmark added, bookmark removed, window opened, window closed, window focused, tab title changed, extension installed, and more. The events most people want out of the box.
 
-Tier 2 (Useful, 37 events, opt-in): tab muted or unmuted, tab pinned, tab zoomed, URL visited, history cleared, tab group created, system idle, system locked, omnibox interactions. Useful in specific workflows.
+Tier 2 — Useful (37 events, opt-in): tab muted/unmuted, tab pinned, tab zoomed, URL visited, history cleared, tab group changes, system idle, system locked, omnibox interactions, cookie changes. Useful for specific workflows; each one requires a one-time permission prompt.
 
-Tier 3 (Advanced, 2 events, hidden by default): events that fire often enough to be noisy but useful for very specific workflows.
+Tier 3 — Advanced (2 events, off by default): events that fire frequently enough to be noisy. Useful for debugging or very specific monitoring needs.
 
-Per-event debounce suppresses rapid duplicates from the same event firing in bursts, like a page rewriting its title several times during load.
+Per-event debounce suppresses rapid duplicates — a page rewriting its title several times during load only triggers one cue.
 
 ## Configuration
 
-The Sound Events tab in the options page lists every event with its own controls. For each event you can:
+The Sound Events tab in the options page lists every event with individual controls:
 
-- Enable or disable the sound independently. Hate the page-loaded cue but love the download-complete one? Turn the loaded one off.
-- Adjust volume from 0 to 100 percent.
-- Adjust pitch from 0.5x to 2.0x.
-- Preview the sound on demand without enabling the event first.
+- Enable or disable each event independently.
+- Volume from 0% to 100%.
+- Pitch from 0.5x to 2.0x.
+- Preview any sound without enabling the event.
 
-A master volume and a master mute apply across every event.
+A master volume and master mute apply across all events. A separate "mute when unfocused" toggle silences cues whenever no browser window has focus — useful if you switch to another application and don't want stray sounds.
 
 ## Sound themes
 
-Sounds are organised into themes. The extension ships with the Pulse theme, a set of short cues designed to sit comfortably under a screen reader's voice. Events without a dedicated sound in the active theme fall back to a sensible default based on the event's tier.
+Sounds are organized into themes. Finch ships with the Pulse theme — short, clean cues designed to sit under a screen reader's voice without competing. Events that don't have a dedicated sound in the active theme fall back to a tier-based default.
+
+Custom theme import is planned for a future release.
 
 ## Smart suppression
 
-Browsers fire events in bursts. Clicking a link can produce navigation-starting, page-loading, navigation-committed, DOM-ready, and page-loaded in under a second - five events for one user action. Playing five sounds for one action would be overwhelming.
+Browsers fire events in bursts. Clicking a link can produce navigation-starting, page-loading, navigation-committed, DOM-ready, and page-loaded in under a second — five events for one user action. Playing all five sounds would be overwhelming.
 
-Finch includes:
+Finch handles this with:
 
-- A global cooldown gate (~150 ms) that suppresses cascading events while still letting you hear the first one.
-- Priority preemption so higher-priority events (errors, page-loaded) can still play inside the cooldown window, preempting lower-priority cues.
-- Per-event debounce for events that rapid-fire on their own (tab title changes during a page load, for example).
+- A global cooldown (~150 ms) that suppresses cascading events while letting you hear the first one.
+- Priority preemption: higher-priority events (errors, page-loaded) can break through the cooldown window.
+- Per-event debounce for events that rapid-fire on their own.
 
-You hear the meaningful events, not every twitch of the event stream.
+You hear the meaningful events, not every internal state change.
 
 ## What Finch is not
 
-Finch does not play music or continuous audio. It does not read page content; your screen reader handles that. It does not block ads, modify pages, inject scripts, or observe what you do on websites. It does not replace your browser's notification system; it sits alongside it as an audio channel where the browser provides visual cues.
+Finch does not play music or continuous audio. It does not read page content — your screen reader handles that. It does not block ads, modify pages, inject scripts, or observe what you do on websites. It does not request access to any website's content. It listens to browser API events (tabs, bookmarks, downloads, navigation) and plays a short sound. That's it.
 
 ## Privacy
 
-No telemetry. No analytics. No crash reports. No accounts. No third-party services or CDN fetches at runtime. All settings live in the browser's own extension storage and never leave your machine. Sound files ship inside the extension package.
+No telemetry. No analytics. No crash reports. No accounts. No third-party services. No CDN fetches. All settings are stored locally in the browser's own extension storage and never leave your machine. Sound files ship inside the extension package.
 
-The extension includes an optional local log viewer for developers - runs on localhost:8089, off by default, never reachable from outside the machine. A normal user does not need to touch it.
+An optional local log server for developers runs on localhost:8089 and is off by default.
 
 ## Keyboard shortcuts
 
-Global, work from any tab:
+Global (work from any tab or window):
 
-- Alt + M - toggle mute
-- Alt + Shift + O - open the options page
+- Alt+M — toggle mute
+- Alt+Shift+M — toggle mute-when-unfocused
+- Alt+Shift+I — open the options page
 
-Inside the options page:
+Inside the popup and options page:
 
-- Alt + T - cycle through sound themes
-- Shift + ? - read a help announcement listing the available shortcuts
+- Alt+T — cycle through sound themes
+- Shift+? — hear the available shortcuts read aloud
 
-Tab navigation in the options page uses the standard WAI-ARIA pattern: Tab into the tab list, then Left or Right to move between General, Sound Events, Themes, and Logging.
+Tab navigation in options follows the standard WAI-ARIA pattern: Tab into the tab list, Left/Right to switch between General, Sound Events, Themes, and Logging.
 
 ## Accessibility
 
-Accessibility is a hard gate for every change that touches the UI. Finch targets WCAG AA with WCAG AAA where practical. The popup and options use accessible React primitives, live-region announcements are throttled to avoid overwhelming screen readers, and every interactive control has an explicit accessible name.
+Accessibility is a hard requirement, not a nice-to-have. Finch targets WCAG AA with WCAG AAA contrast ratios. The popup and options page use accessible React primitives (Radix UI), live-region announcements for state changes, and explicit accessible names on every interactive control. All destructive actions (reset, clear logs) require a two-step confirmation.
 
 ## Browser compatibility
 
@@ -91,6 +96,6 @@ Chrome 140 or later. Firefox 142 or later.
 
 ## Open source
 
-Finch is released under the GNU Affero General Public License v3.0. Source code, documentation, and release history are available on GitHub at [https://github.com/akash07k/finch](https://github.com/akash07k/finch).
+Finch is released under the GNU Affero General Public License v3.0 (AGPL-3.0). Source code, documentation, and releases are on [GitHub](https://github.com/akash07k/finch).
 
-Issue reports, theme submissions, and pull requests are welcome.
+Issue reports, theme contributions, and pull requests are welcome.

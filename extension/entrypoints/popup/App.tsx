@@ -99,7 +99,7 @@ export default function App() {
       e.preventDefault();
       announce(
         "Alt+T cycles theme. Global shortcuts: Alt+M toggles mute, " +
-          "Alt+Up/Down adjusts volume. Alt+Shift+R opens options.",
+          "Alt+Up/Down adjusts volume. Alt+Shift+I opens options.",
         "assertive",
       );
     });
