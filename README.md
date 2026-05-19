@@ -19,7 +19,7 @@ The Pulse sound theme ships built in. The theme format is documented in [`docs/s
 
 A global cooldown (~150 ms) prevents cascading sounds from a single user action. Per-event debounce handles rapid-fire duplicates. Higher-priority events can preempt lower-priority cues already in the cooldown window.
 
-Keyboard shortcuts: Alt+M to toggle mute, Alt+Shift+M to mute when the browser is unfocused, Alt+Shift+U to open options (all global). Inside the options page: Alt+T cycles themes, Shift+? reads a help announcement.
+Keyboard shortcuts: Alt+M to toggle mute, Alt+Shift+M to mute when the browser is unfocused, Alt+Shift+R to open options (all global). Inside the options page: Alt+T cycles themes, Shift+? reads a help announcement.
 
 ## Privacy
 

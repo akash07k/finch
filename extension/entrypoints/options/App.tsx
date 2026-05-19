@@ -59,10 +59,7 @@ export default function App() {
         setShowWelcome(true);
         if (!announcedWelcomeRef.current) {
           announcedWelcomeRef.current = true;
-          announce(
-            "Welcome to Oriole. A welcome banner is available above the tabs.",
-            "polite",
-          );
+          announce("Welcome to Oriole. A welcome banner is available above the tabs.", "polite");
         }
       }
     }

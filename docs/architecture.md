@@ -107,7 +107,7 @@ The dynamic import of the audio backend in `background.ts` keeps Howler.js out o
 
 React 19, Radix UI primitives, Tailwind 4. shadcn/ui "new-york" components live under `extension/components/ui/`. Three a11y conventions matter:
 
-- Tab navigation uses the WAI-ARIA Tabs keyboard model (Tab into the list, then Left/Right/Home/End). `hotkeys-js` covers two local shortcuts (`Alt+T` cycle theme, `Shift+?` help) plus the global `Alt+M` (mute) and `Alt+Shift+U` (open options) registered with `browser.commands`.
+- Tab navigation uses the WAI-ARIA Tabs keyboard model (Tab into the list, then Left/Right/Home/End). `hotkeys-js` covers two local shortcuts (`Alt+T` cycle theme, `Shift+?` help) plus the global `Alt+M` (mute) and `Alt+Shift+R` (open options) registered with `browser.commands`.
 - `@react-aria/live-announcer` provides `announce(message, "polite" | "assertive")` for status changes, export notifications, and the welcome banner.
 - `extension/shared/a11y/focus.ts` provides focus helpers; the options page uses `requestAnimationFrame` to focus a heading after dismissing modal-like UI.
 

@@ -2,12 +2,11 @@
 
 All notable changes to Oriole are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Oriole adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Entries below v1.1.1 are released by hand; everything from v1.1.1 onward is generated from [Conventional Commits](https://conventionalcommits.org) by `release-it`.
 
-
 ## [1.3.1](https://github.com/akash07k/oriole/compare/v1.3.0...v1.3.1) (2026-05-19)
 
 ### Bug Fixes
 
-* **docs:** re-align markdown tables after rebrand ([581358e](https://github.com/akash07k/oriole/commit/581358e00715b68bc305905e43533c7e50ec1411))
+- **docs:** re-align markdown tables after rebrand ([581358e](https://github.com/akash07k/oriole/commit/581358e00715b68bc305905e43533c7e50ec1411))
 
 # Changelog
 

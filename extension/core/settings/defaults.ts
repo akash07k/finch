@@ -41,7 +41,7 @@ export const DEFAULT_SETTINGS: OrioleSettings = {
       // Global shortcuts — handled by browser.commands API, work from any tab
       "global:toggle-mute": "Alt+M",
       "global:toggle-mute-when-blurred": "Alt+Shift+M",
-      "global:open-options": "Alt+Shift+U",
+      "global:open-options": "Alt+Shift+R",
       // Local shortcuts — handled by hotkeys-js, work in popup/options UI
       "local:cycle-theme": "alt+t",
       "local:tab-general": "alt+1",

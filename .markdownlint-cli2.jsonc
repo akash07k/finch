@@ -29,8 +29,8 @@
     "MD013": false,
     "MD024": { "siblings_only": true },
     "MD033": {
-      "allowed_elements": ["br", "details", "summary", "kbd", "sup", "sub"]
-    }
+      "allowed_elements": ["br", "details", "summary", "kbd", "sup", "sub"],
+    },
   },
   "ignores": [
     "**/node_modules/**",
@@ -41,7 +41,7 @@
     "**/.agents/**",
     "**/.playwright-mcp/**",
     "LICENSE.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
   ],
-  "gitignore": true
+  "gitignore": true,
 }
