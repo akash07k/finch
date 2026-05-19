@@ -57,13 +57,13 @@ describe("flattenSettings", () => {
         hotkeys: {
           bindings: {
             "global:toggle-mute": "Alt+M",
-            "local:cycle-theme": "alt+t",
+            "global:open-options": "Alt+Shift+C",
           },
         },
       }),
     ).toEqual({
       "hotkeys.bindings.global:toggle-mute": "Alt+M",
-      "hotkeys.bindings.local:cycle-theme": "alt+t",
+      "hotkeys.bindings.global:open-options": "Alt+Shift+C",
     });
   });
 

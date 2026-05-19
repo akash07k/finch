@@ -42,13 +42,12 @@ describe("DEFAULT_SETTINGS", () => {
   });
 
   describe("hotkeys", () => {
-    it("has default bindings for global and local commands", () => {
+    it("has default bindings for global commands", () => {
       const bindings = DEFAULT_SETTINGS.hotkeys.bindings;
 
       expect(bindings["global:toggle-mute"]).toBeDefined();
+      expect(bindings["global:toggle-mute-when-blurred"]).toBeDefined();
       expect(bindings["global:open-options"]).toBeDefined();
-      expect(bindings["local:cycle-theme"]).toBeDefined();
-      expect(bindings["local:tab-sound-events"]).toBeDefined();
     });
 
     it("uses Alt modifier for global shortcuts", () => {

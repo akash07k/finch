@@ -6,18 +6,13 @@
  * Organized into tabs: General, Sound Events, Themes, Logging.
  * Uses shadcn/ui Tabs (Radix) with default automatic activation —
  * tab switching uses the WAI-ARIA keyboard model: Tab into the tab
- * list, then Left/Right/Home/End to move between tabs. Alt+1..4
- * overrides were removed in favour of the standard model.
- * Local shortcuts that survive: Alt+T cycles theme, Shift+? reads
- * the help announcement.
+ * list, then Left/Right/Home/End to move between tabs.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import hotkeys from "hotkeys-js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { announce } from "@/shared/a11y/announcer";
 import { focusFirst } from "@/shared/a11y/focus";
-import { useCycleTheme } from "@/shared/hooks/use-cycle-theme";
 import { onboardingSeenItem } from "@/core/settings/items";
 import { GeneralTab } from "./tabs/GeneralTab.js";
 import { SoundEventsTab } from "./tabs/SoundEventsTab.js";
@@ -38,7 +33,7 @@ const VERSION = MANIFEST.version;
 const EXTENSION_NAME = MANIFEST.name;
 const RELEASE_URL = `https://github.com/akash07k/finch/releases/tag/v${VERSION}`;
 
-/** Options page root — tabbed settings interface with local keyboard shortcuts. */
+/** Options page root — tabbed settings interface. */
 export default function App() {
   const [activeTab, setActiveTab] = useState("general");
   const [showWelcome, setShowWelcome] = useState(false);
@@ -101,50 +96,6 @@ export default function App() {
     });
   }, []);
 
-  const handleCycleTheme = useCycleTheme();
-
-  // Register local keyboard shortcuts via hotkeys-js.
-  //
-  // Alt+1..4 tab-switching used to live here but was removed — the
-  // WAI-ARIA Tabs keyboard model (Tab into list, then Left/Right to
-  // move) is reliable, discoverable, and doesn't collide with Alt-key
-  // shortcuts that other extensions or the browser may bind. Only
-  // two local shortcuts remain: Alt+T to cycle theme and Shift+? to
-  // read the help announcement.
-  useEffect(() => {
-    const originalFilter = hotkeys.filter;
-    // Scope the filter override to ONLY the shortcuts we register here
-    // (Alt+T, Shift+?). The hotkeys-js default filter blocks shortcuts
-    // when focus is inside a text input — sensible for arbitrary future
-    // shortcuts, so we delegate to it. Replacing it wholesale with
-    // `() => true` would let any future single-letter shortcut fire
-    // while the user is typing in the search box on Sound Events or
-    // the URL field on Logging.
-    hotkeys.filter = (event) => {
-      if (event.altKey && event.key.toLowerCase() === "t") return true;
-      if (event.shiftKey && event.key === "?") return true;
-      return originalFilter(event);
-    };
-
-    hotkeys("alt+t", (e) => {
-      e.preventDefault();
-      handleCycleTheme();
-    });
-    hotkeys("shift+/", (e) => {
-      e.preventDefault();
-      announce(
-        "Keyboard shortcuts: Alt+T cycles theme. Alt+M toggles mute from any tab. " +
-          "To switch settings tabs, focus the tab list with Tab, then use Left and Right arrow keys.",
-        "assertive",
-      );
-    });
-
-    return () => {
-      hotkeys.unbind("alt+t,shift+/");
-      hotkeys.filter = originalFilter;
-    };
-  }, [handleCycleTheme]);
-
   return (
     <>
       <main className="max-w-4xl mx-auto p-6">
@@ -164,8 +115,7 @@ export default function App() {
             <p className="text-muted-foreground">
               Finch plays audio cues for browser events — tabs, bookmarks, downloads, and
               navigation. Sounds play automatically as you browse. Use the General tab to adjust
-              volume and mute. Use Sound Events to enable or disable individual events. Press
-              Shift+? for keyboard shortcuts.
+              volume and mute. Use Sound Events to enable or disable individual events.
             </p>
             <button
               type="button"

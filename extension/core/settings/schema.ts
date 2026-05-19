@@ -54,12 +54,6 @@ export const hotkeySettingsSchema = z.object({
     "global:toggle-mute": "Alt+M",
     "global:toggle-mute-when-blurred": "Alt+Shift+M",
     "global:open-options": "Alt+Shift+C",
-    "local:cycle-theme": "alt+t",
-    "local:tab-general": "alt+1",
-    "local:tab-sound-events": "alt+2",
-    "local:tab-themes": "alt+3",
-    "local:tab-logging": "alt+4",
-    "local:show-help": "shift+/",
   }),
 });
 

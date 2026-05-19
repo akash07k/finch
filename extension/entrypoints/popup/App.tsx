@@ -19,8 +19,7 @@
  * of `chrome.*` for Chrome + Firefox compatibility.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import hotkeys from "hotkeys-js";
+import { useEffect, useRef, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -34,7 +33,6 @@ import {
 import { ExternalLink, Settings, Volume2, VolumeOff } from "lucide-react";
 import { announce } from "@/shared/a11y/announcer";
 import { sendLog } from "@/core/messaging/send";
-import { useCycleTheme } from "@/shared/hooks/use-cycle-theme";
 import { BUILT_IN_THEMES, DEFAULT_THEME_ID } from "@/config/themes";
 import { mutedItem, masterVolumeItem, activeThemeItem } from "@/core/settings/items";
 
@@ -74,41 +72,6 @@ export default function App() {
     }
     loadSettings();
   }, []);
-
-  const handleCycleTheme = useCycleTheme(
-    useCallback((themeId: string) => setActiveTheme(themeId), []),
-  );
-
-  // Register local keyboard shortcuts
-  useEffect(() => {
-    const originalFilter = hotkeys.filter;
-    // Scope the filter override to ONLY the shortcuts we register here
-    // (Alt+T, Shift+?). Replacing it wholesale with `() => true` would
-    // let any future shortcut fire while the user is typing in an input.
-    hotkeys.filter = (event) => {
-      if (event.altKey && event.key.toLowerCase() === "t") return true;
-      if (event.shiftKey && event.key === "?") return true;
-      return originalFilter(event);
-    };
-
-    hotkeys("alt+t", (e) => {
-      e.preventDefault();
-      handleCycleTheme();
-    });
-    hotkeys("shift+/", (e) => {
-      e.preventDefault();
-      announce(
-        "Alt+T cycles theme. Global shortcuts: Alt+M toggles mute, " +
-          "Alt+Up/Down adjusts volume. Alt+Shift+C opens options.",
-        "assertive",
-      );
-    });
-
-    return () => {
-      hotkeys.unbind("alt+t,shift+/");
-      hotkeys.filter = originalFilter;
-    };
-  }, [handleCycleTheme]);
 
   /** Toggle mute and announce the change. */
   const handleMuteChange = (checked: boolean) => {
@@ -162,11 +125,7 @@ export default function App() {
   };
 
   return (
-    <main
-      aria-label="Finch controls"
-      aria-keyshortcuts="Shift+? Alt+T"
-      className="w-[320px] p-4 space-y-4"
-    >
+    <main aria-label="Finch controls" className="w-[320px] p-4 space-y-4">
       <h1 ref={headingRef} tabIndex={-1} className="text-lg font-bold">
         Finch
       </h1>

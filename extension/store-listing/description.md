@@ -79,12 +79,7 @@ Global (work from any tab or window):
 - Alt+Shift+M — toggle mute-when-unfocused
 - Alt+Shift+C — open the options page
 
-Inside the popup and options page:
-
-- Alt+T — cycle through sound themes
-- Shift+? — hear the available shortcuts read aloud
-
-Tab navigation in options follows the standard WAI-ARIA pattern: Tab into the tab list, Left/Right to switch between General, Sound Events, Themes, and Logging.
+Tab navigation in the options page follows the standard WAI-ARIA pattern: Tab into the tab list, Left/Right to switch between General, Sound Events, Themes, and Logging.
 
 ## Accessibility
 
