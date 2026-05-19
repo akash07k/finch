@@ -35,6 +35,7 @@ import { ExternalLink, Settings, Volume2, VolumeOff } from "lucide-react";
 import { announce } from "@/shared/a11y/announcer";
 import { sendLog } from "@/core/messaging/send";
 import { BUILT_IN_THEMES, DEFAULT_THEME_ID } from "@/config/themes";
+import { mutedItem, masterVolumeItem, activeThemeItem } from "@/core/settings/items";
 
 /**
  * Main popup component.
@@ -63,16 +64,9 @@ export default function App() {
   useEffect(() => {
     async function loadSettings() {
       try {
-        const stored = await browser.storage.local.get([
-          "general.muted",
-          "general.masterVolume",
-          "general.activeTheme",
-        ]);
-        if (stored["general.muted"] !== undefined) setMuted(stored["general.muted"] as boolean);
-        if (stored["general.masterVolume"] !== undefined)
-          setVolume(stored["general.masterVolume"] as number);
-        if (stored["general.activeTheme"] !== undefined)
-          setActiveTheme(stored["general.activeTheme"] as string);
+        setMuted(await mutedItem.getValue());
+        setVolume(await masterVolumeItem.getValue());
+        setActiveTheme(await activeThemeItem.getValue());
       } catch {
         // Storage might not be available yet — use defaults
       }
@@ -82,13 +76,12 @@ export default function App() {
 
   /** Cycle through available themes via keyboard shortcut. */
   const handleCycleTheme = useCallback(async () => {
-    const stored = await browser.storage.local.get("general.activeTheme");
-    const current = (stored["general.activeTheme"] as string) ?? DEFAULT_THEME_ID;
+    const current = await activeThemeItem.getValue();
     const themeIds = BUILT_IN_THEMES.map((t) => t.id);
     const nextIndex = (themeIds.indexOf(current) + 1) % themeIds.length;
     const next = themeIds[nextIndex]!;
     setActiveTheme(next);
-    await browser.storage.local.set({ "general.activeTheme": next });
+    await activeThemeItem.setValue(next);
     announce(`Theme changed to ${next}`, "polite");
     sendLog("info", `Theme changed to ${next} via popup shortcut`);
   }, []);
@@ -128,7 +121,7 @@ export default function App() {
   const handleMuteChange = (checked: boolean) => {
     const newMuted = !checked; // Switch shows "Sound on" when checked
     setMuted(newMuted);
-    browser.storage.local.set({ "general.muted": newMuted });
+    mutedItem.setValue(newMuted);
     announce(newMuted ? "All sounds muted" : "Sounds unmuted", "assertive");
     sendLog("info", newMuted ? "Sound muted via popup" : "Sound unmuted via popup");
   };
@@ -142,7 +135,7 @@ export default function App() {
   const handleVolumeCommit = (values: number[]) => {
     const newVolume = values[0] ?? 80;
     setVolume(newVolume);
-    browser.storage.local.set({ "general.masterVolume": newVolume });
+    masterVolumeItem.setValue(newVolume);
     announce(`Volume set to ${newVolume} percent`, "polite");
     if (newVolume === 0) {
       announce("Volume muted", "polite");
@@ -152,7 +145,7 @@ export default function App() {
   /** Switch theme and save to storage. */
   const handleThemeChange = (themeId: string) => {
     setActiveTheme(themeId);
-    browser.storage.local.set({ "general.activeTheme": themeId });
+    activeThemeItem.setValue(themeId);
     announce(`Theme changed to ${themeId}`, "polite");
     sendLog("info", `Theme changed to ${themeId} via popup`);
   };

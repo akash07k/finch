@@ -17,7 +17,8 @@ import hotkeys from "hotkeys-js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { announce } from "@/shared/a11y/announcer";
 import { focusFirst } from "@/shared/a11y/focus";
-import { BUILT_IN_THEMES, DEFAULT_THEME_ID } from "@/config/themes";
+import { BUILT_IN_THEMES } from "@/config/themes";
+import { activeThemeItem, onboardingSeenItem } from "@/core/settings/items";
 import { GeneralTab } from "./tabs/GeneralTab.js";
 import { SoundEventsTab } from "./tabs/SoundEventsTab.js";
 import { ThemesTab } from "./tabs/ThemesTab.js";
@@ -54,8 +55,8 @@ export default function App() {
   // Check if this is the first visit (show welcome banner)
   useEffect(() => {
     async function init() {
-      const stored = await browser.storage.local.get("onboarding.seen");
-      if (!stored["onboarding.seen"]) {
+      const seen = await onboardingSeenItem.getValue();
+      if (!seen) {
         setShowWelcome(true);
         if (!announcedWelcomeRef.current) {
           announcedWelcomeRef.current = true;
@@ -69,7 +70,7 @@ export default function App() {
   /** Dismiss the welcome banner and mark onboarding as seen. */
   const dismissWelcome = () => {
     setShowWelcome(false);
-    browser.storage.local.set({ "onboarding.seen": true });
+    onboardingSeenItem.setValue(true);
     announce("Welcome banner dismissed", "polite");
     requestAnimationFrame(() => {
       headingRef.current?.focus();
@@ -102,12 +103,11 @@ export default function App() {
 
   /** Cycle through available themes. */
   const handleCycleTheme = useCallback(async () => {
-    const stored = await browser.storage.local.get("general.activeTheme");
-    const current = (stored["general.activeTheme"] as string) ?? DEFAULT_THEME_ID;
+    const current = await activeThemeItem.getValue();
     const themeIds = BUILT_IN_THEMES.map((t) => t.id);
     const nextIndex = (themeIds.indexOf(current) + 1) % themeIds.length;
     const next = themeIds[nextIndex]!;
-    await browser.storage.local.set({ "general.activeTheme": next });
+    await activeThemeItem.setValue(next);
     announce(`Theme changed to ${next}`, "polite");
   }, []);
 

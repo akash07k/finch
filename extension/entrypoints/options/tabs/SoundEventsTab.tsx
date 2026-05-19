@@ -35,19 +35,13 @@ import { Play } from "lucide-react";
 import { announce } from "@/shared/a11y/announcer";
 import { pickOptionalPermissions, requestPermissions } from "@/shared/permissions/request";
 import { EVENT_REGISTRY } from "@/modules/sound-engine/event-registry";
+import { eventConfigItem, type StoredEventConfig } from "@/core/settings/items";
 import type { EventDefinition } from "@/modules/sound-engine/types";
 
 /** Events supported on the current browser (filtered at build time). */
 const PLATFORM_EVENTS = EVENT_REGISTRY.filter((e) =>
   e.platforms.includes(import.meta.env.BROWSER === "firefox" ? "firefox" : "chrome"),
 );
-
-/** Per-event config stored in settings. */
-interface EventConfig {
-  enabled: boolean;
-  volume: number;
-  pitch: number;
-}
 
 /**
  * Available tier filter options.
@@ -108,7 +102,7 @@ function countText(matched: number, total: number, noun: string, suffix: string)
 export function SoundEventsTab() {
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<string>("1");
-  const [configs, setConfigs] = useState<Record<string, EventConfig>>({});
+  const [configs, setConfigs] = useState<Record<string, StoredEventConfig>>({});
   // Mirror of `configs` for handlers that need the latest value without
   // capturing a stale closure (e.g., a slider commit firing after a
   // toggle that flipped `enabled` in the same render cycle).
@@ -135,38 +129,21 @@ export function SoundEventsTab() {
   // Load per-event configs from storage
   useEffect(() => {
     async function load() {
+      const fallback = (id: string): StoredEventConfig => ({
+        enabled: getEventDefaults(id).enabled,
+        volume: 100,
+        pitch: 1.0,
+      });
       try {
-        // Query only the per-event keys we care about. A `get(null)` would
-        // pull the entire extension storage (migration markers, future
-        // feature keys, etc.) just to read these N entries.
-        const keys = EVENT_REGISTRY.map((e) => `sounds.events.${e.id}`);
-        const stored = await browser.storage.local.get(keys);
-        const loadedConfigs: Record<string, EventConfig> = {};
-        for (const event of PLATFORM_EVENTS) {
-          const key = `sounds.events.${event.id}`;
-          const value = stored[key];
-          if (typeof value === "object" && value !== null) {
-            loadedConfigs[event.id] = value as EventConfig;
-          } else {
-            loadedConfigs[event.id] = {
-              enabled: getEventDefaults(event.id).enabled,
-              volume: 100,
-              pitch: 1.0,
-            };
-          }
-        }
-        setConfigs(loadedConfigs);
+        const entries = await Promise.all(
+          PLATFORM_EVENTS.map(async (event) => {
+            const value = await eventConfigItem(event.id).getValue();
+            return [event.id, value ?? fallback(event.id)] as const;
+          }),
+        );
+        setConfigs(Object.fromEntries(entries));
       } catch {
-        // Use defaults
-        const defaults: Record<string, EventConfig> = {};
-        for (const event of PLATFORM_EVENTS) {
-          defaults[event.id] = {
-            enabled: getEventDefaults(event.id).enabled,
-            volume: 100,
-            pitch: 1.0,
-          };
-        }
-        setConfigs(defaults);
+        setConfigs(Object.fromEntries(PLATFORM_EVENTS.map((e) => [e.id, fallback(e.id)])));
       }
     }
     load();
@@ -208,8 +185,8 @@ export function SoundEventsTab() {
   }, [filteredEvents.length]);
 
   /** Save a single event config to storage. */
-  const saveEventConfig = (eventId: string, config: EventConfig) => {
-    browser.storage.local.set({ [`sounds.events.${eventId}`]: config });
+  const saveEventConfig = (eventId: string, config: StoredEventConfig) => {
+    eventConfigItem(eventId).setValue(config);
   };
 
   /**
@@ -524,8 +501,7 @@ export function SoundEventsTab() {
             ref={confirmResetRef}
             variant="destructive"
             onClick={async () => {
-              const defaults: Record<string, EventConfig> = {};
-              const keysToRemove = PLATFORM_EVENTS.map((e) => `sounds.events.${e.id}`);
+              const defaults: Record<string, StoredEventConfig> = {};
               for (const event of PLATFORM_EVENTS) {
                 defaults[event.id] = {
                   enabled: getEventDefaults(event.id).enabled,
@@ -533,7 +509,9 @@ export function SoundEventsTab() {
                   pitch: 1.0,
                 };
               }
-              await browser.storage.local.remove(keysToRemove);
+              await Promise.all(
+                PLATFORM_EVENTS.map((e) => eventConfigItem(e.id).removeValue()),
+              );
               setConfigs(defaults);
               announce("All sound event settings reset to defaults", "polite");
               sendLog("warn", "Sound event settings reset to defaults", { source: "options" });

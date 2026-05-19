@@ -21,6 +21,7 @@ import {
 import { announce } from "@/shared/a11y/announcer";
 import { sendLog } from "@/core/messaging/send";
 import { BUILT_IN_THEMES, DEFAULT_THEME_ID } from "@/config/themes";
+import { activeThemeItem } from "@/core/settings/items";
 
 /** Themes settings tab — theme selector, active theme info, and custom theme import placeholder. */
 export function ThemesTab() {
@@ -41,10 +42,7 @@ export function ThemesTab() {
   useEffect(() => {
     async function load() {
       try {
-        const stored = await browser.storage.local.get("general.activeTheme");
-        if (stored["general.activeTheme"]) {
-          setActiveTheme(stored["general.activeTheme"] as string);
-        }
+        setActiveTheme(await activeThemeItem.getValue());
       } catch {
         // Use default
       }
@@ -54,7 +52,7 @@ export function ThemesTab() {
 
   const handleThemeChange = (themeId: string) => {
     setActiveTheme(themeId);
-    browser.storage.local.set({ "general.activeTheme": themeId });
+    activeThemeItem.setValue(themeId);
     const theme = BUILT_IN_THEMES.find((t) => t.id === themeId);
     announce(`Theme changed to ${theme?.name ?? themeId}`, "polite");
     sendLog("info", `Theme changed to ${theme?.name ?? themeId}`, { themeId });
@@ -139,10 +137,10 @@ export function ThemesTab() {
           <Button
             ref={confirmResetRef}
             variant="destructive"
-            onClick={() => {
+            onClick={async () => {
               const defaultTheme = BUILT_IN_THEMES.find((t) => t.id === DEFAULT_THEME_ID);
               setActiveTheme(DEFAULT_THEME_ID);
-              browser.storage.local.set({ "general.activeTheme": DEFAULT_THEME_ID });
+              await activeThemeItem.setValue(DEFAULT_THEME_ID);
               announce(
                 `Theme reset to ${defaultTheme?.name ?? DEFAULT_THEME_ID} (default)`,
                 "polite",

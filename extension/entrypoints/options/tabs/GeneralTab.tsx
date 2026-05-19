@@ -4,9 +4,9 @@
  * General settings tab — master volume, active theme,
  * mute toggle, and module enable/disable toggles.
  *
- * Settings are read from and written to browser.storage.local.
- * Changes take effect immediately — the background script
- * watches for storage changes.
+ * Settings are read and written via typed WXT storage items
+ * (see `core/settings/items.ts`). Changes take effect
+ * immediately — the background script watches for storage changes.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -24,6 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { announce } from "@/shared/a11y/announcer";
+import {
+  mutedItem,
+  muteWhenBlurredItem,
+  masterVolumeItem,
+  activeThemeItem,
+  enabledModulesItem,
+  showWhatsNewOnUpdateItem,
+} from "@/core/settings/items";
 
 /** General settings tab — master volume, mute, theme selector, and module toggles. */
 export function GeneralTab() {
@@ -58,28 +66,13 @@ export function GeneralTab() {
   useEffect(() => {
     async function load() {
       try {
-        const stored = await browser.storage.local.get([
-          "general.muted",
-          "general.muteWhenBlurred",
-          "general.masterVolume",
-          "general.activeTheme",
-          "general.enabledModules",
-          "general.showWhatsNewOnUpdate",
-        ]);
-        if (stored["general.muted"] !== undefined) setMuted(stored["general.muted"] as boolean);
-        if (stored["general.muteWhenBlurred"] !== undefined)
-          setMuteWhenBlurred(stored["general.muteWhenBlurred"] as boolean);
-        if (stored["general.masterVolume"] !== undefined)
-          setVolume(stored["general.masterVolume"] as number);
-        if (stored["general.activeTheme"] !== undefined)
-          setActiveTheme(stored["general.activeTheme"] as string);
-        if (stored["general.enabledModules"] !== undefined) {
-          const modules = stored["general.enabledModules"] as string[];
-          setSoundEngineEnabled(modules.includes("sound-engine"));
-        }
-        if (stored["general.showWhatsNewOnUpdate"] !== undefined) {
-          setShowWhatsNewOnUpdate(stored["general.showWhatsNewOnUpdate"] as boolean);
-        }
+        setMuted(await mutedItem.getValue());
+        setMuteWhenBlurred(await muteWhenBlurredItem.getValue());
+        setVolume(await masterVolumeItem.getValue());
+        setActiveTheme(await activeThemeItem.getValue());
+        const modules = await enabledModulesItem.getValue();
+        setSoundEngineEnabled(modules.includes("sound-engine"));
+        setShowWhatsNewOnUpdate(await showWhatsNewOnUpdateItem.getValue());
       } catch {
         // Use defaults
       }
@@ -87,27 +80,23 @@ export function GeneralTab() {
     load();
   }, []);
 
-  /** Save a setting to storage, announce the change, and log it. */
-  const saveSetting = (key: string, value: unknown, announcement?: string) => {
-    browser.storage.local.set({ [key]: value });
-    if (announcement) announce(announcement, "polite");
-    sendLog("info", `Setting changed: ${key}`, { key, value });
-  };
-
   const handleMuteChange = (checked: boolean) => {
     const newMuted = !checked;
     setMuted(newMuted);
-    saveSetting("general.muted", newMuted, newMuted ? "All sounds muted" : "Sounds unmuted");
+    mutedItem.setValue(newMuted);
+    announce(newMuted ? "All sounds muted" : "Sounds unmuted", "polite");
+    sendLog("info", `Setting changed: general.muted`, { key: "general.muted", value: newMuted });
   };
 
   /** Toggle "mute when browser is unfocused". */
   const handleMuteWhenBlurredChange = (checked: boolean) => {
     setMuteWhenBlurred(checked);
-    saveSetting(
-      "general.muteWhenBlurred",
-      checked,
-      checked ? "Mute when unfocused enabled" : "Mute when unfocused disabled",
-    );
+    muteWhenBlurredItem.setValue(checked);
+    announce(checked ? "Mute when unfocused enabled" : "Mute when unfocused disabled", "polite");
+    sendLog("info", `Setting changed: general.muteWhenBlurred`, {
+      key: "general.muteWhenBlurred",
+      value: checked,
+    });
   };
 
   /** Update volume UI state on drag (does NOT save to storage yet). */
@@ -119,34 +108,48 @@ export function GeneralTab() {
   const handleVolumeCommit = (values: number[]) => {
     const newVolume = values[0] ?? 80;
     setVolume(newVolume);
-    saveSetting("general.masterVolume", newVolume);
+    masterVolumeItem.setValue(newVolume);
     announce(`Volume set to ${newVolume} percent`, "polite");
+    sendLog("info", `Setting changed: general.masterVolume`, {
+      key: "general.masterVolume",
+      value: newVolume,
+    });
   };
 
   const handleThemeChange = (themeId: string) => {
     setActiveTheme(themeId);
-    saveSetting("general.activeTheme", themeId, `Theme changed to ${themeId}`);
+    activeThemeItem.setValue(themeId);
+    announce(`Theme changed to ${themeId}`, "polite");
+    sendLog("info", `Setting changed: general.activeTheme`, {
+      key: "general.activeTheme",
+      value: themeId,
+    });
   };
 
   /** Toggle the sound engine. Writes the full enabledModules array (not a boolean). */
   const handleSoundEngineToggle = (checked: boolean) => {
     setSoundEngineEnabled(checked);
     const modules = checked ? ["sound-engine"] : [];
-    saveSetting(
-      "general.enabledModules",
-      modules,
-      checked ? "Sound engine enabled" : "Sound engine disabled",
-    );
+    enabledModulesItem.setValue(modules);
+    announce(checked ? "Sound engine enabled" : "Sound engine disabled", "polite");
+    sendLog("info", `Setting changed: general.enabledModules`, {
+      key: "general.enabledModules",
+      value: modules,
+    });
   };
 
   /** Toggle the post-update What's New page. */
   const handleWhatsNewToggle = (checked: boolean) => {
     setShowWhatsNewOnUpdate(checked);
-    saveSetting(
-      "general.showWhatsNewOnUpdate",
-      checked,
+    showWhatsNewOnUpdateItem.setValue(checked);
+    announce(
       checked ? "What's New page enabled on update" : "What's New page disabled on update",
+      "polite",
     );
+    sendLog("info", `Setting changed: general.showWhatsNewOnUpdate`, {
+      key: "general.showWhatsNewOnUpdate",
+      value: checked,
+    });
   };
 
   return (
@@ -290,21 +293,21 @@ export function GeneralTab() {
         <Button
           ref={confirmGeneralResetRef}
           variant="destructive"
-          onClick={() => {
+          onClick={async () => {
             setMuted(false);
             setMuteWhenBlurred(false);
             setVolume(80);
             setActiveTheme(DEFAULT_THEME_ID);
             setSoundEngineEnabled(true);
             setShowWhatsNewOnUpdate(true);
-            browser.storage.local.set({
-              "general.muted": false,
-              "general.muteWhenBlurred": false,
-              "general.masterVolume": 80,
-              "general.activeTheme": DEFAULT_THEME_ID,
-              "general.enabledModules": ["sound-engine"],
-              "general.showWhatsNewOnUpdate": true,
-            });
+            await Promise.all([
+              mutedItem.setValue(false),
+              muteWhenBlurredItem.setValue(false),
+              masterVolumeItem.setValue(80),
+              activeThemeItem.setValue(DEFAULT_THEME_ID),
+              enabledModulesItem.setValue(["sound-engine"]),
+              showWhatsNewOnUpdateItem.setValue(true),
+            ]);
             announce("General settings reset to defaults", "polite");
             sendLog("warn", "General settings reset to defaults", { source: "options" });
             setConfirmGeneralReset(false);

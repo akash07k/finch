@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { announce } from "@/shared/a11y/announcer";
+import { logLevelItem, logStreamEnabledItem, logServerUrlItem } from "@/core/settings/items";
 
 /** Log level options matching LogLevel enum values. */
 const LOG_LEVELS = [
@@ -73,17 +74,9 @@ export function LoggingTab() {
   useEffect(() => {
     async function load() {
       try {
-        const stored = await browser.storage.local.get([
-          "general.logLevel",
-          "general.logServerUrl",
-          "general.logStreamEnabled",
-        ]);
-        if (stored["general.logLevel"] !== undefined)
-          setLogLevel(String(stored["general.logLevel"]));
-        if (stored["general.logServerUrl"] !== undefined)
-          setLogServerUrl(stored["general.logServerUrl"] as string);
-        if (stored["general.logStreamEnabled"] !== undefined)
-          setLogStreamEnabled(stored["general.logStreamEnabled"] as boolean);
+        setLogLevel(String(await logLevelItem.getValue()));
+        setLogServerUrl(await logServerUrlItem.getValue());
+        setLogStreamEnabled(await logStreamEnabledItem.getValue());
       } catch {
         // Use defaults
       }
@@ -94,7 +87,7 @@ export function LoggingTab() {
   /** Toggle log streaming to the log server. */
   const handleLogStreamToggle = async (checked: boolean) => {
     setLogStreamEnabled(checked);
-    await browser.storage.local.set({ "general.logStreamEnabled": checked });
+    await logStreamEnabledItem.setValue(checked);
 
     if (checked) {
       // Tell the background script to connect now. The user's preference is
@@ -118,14 +111,14 @@ export function LoggingTab() {
 
   const handleLogLevelChange = (value: string) => {
     setLogLevel(value);
-    browser.storage.local.set({ "general.logLevel": Number(value) });
+    logLevelItem.setValue(Number(value));
     const level = LOG_LEVELS.find((l) => l.value === value);
     announce(`Log level set to ${level?.label ?? value}`, "polite");
   };
 
   const handleUrlChange = (value: string) => {
     setLogServerUrl(value);
-    browser.storage.local.set({ "general.logServerUrl": value });
+    logServerUrlItem.setValue(value);
   };
 
   const handleExport = async (format: "json" | "csv" | "html") => {
@@ -324,15 +317,15 @@ export function LoggingTab() {
           <Button
             ref={confirmResetRef}
             variant="destructive"
-            onClick={() => {
+            onClick={async () => {
               setLogLevel("1");
               setLogServerUrl("ws://localhost:8089");
               setLogStreamEnabled(false);
-              browser.storage.local.set({
-                "general.logLevel": 1,
-                "general.logServerUrl": "ws://localhost:8089",
-                "general.logStreamEnabled": false,
-              });
+              await Promise.all([
+                logLevelItem.setValue(1),
+                logServerUrlItem.setValue("ws://localhost:8089"),
+                logStreamEnabledItem.setValue(false),
+              ]);
               announce("Logging settings reset to defaults", "polite");
               sendLog("warn", "Logging settings reset to defaults", { source: "options" });
               setConfirmReset(false);

@@ -40,6 +40,11 @@ import { detectPlatform } from "../shared/platform/detect.js";
 import { soundEngineModule } from "../modules/sound-engine/index.js";
 import { EVENT_REGISTRY_BY_ID } from "../modules/sound-engine/event-registry.js";
 import { CONFIG } from "../config/index.js";
+import {
+  mutedItem,
+  muteWhenBlurredItem,
+  showWhatsNewOnUpdateItem,
+} from "../core/settings/items.js";
 import type { AudioBackend } from "../modules/sound-engine/audio-backends/types.js";
 import type { ModuleContext } from "../core/module-system/types.js";
 
@@ -62,10 +67,7 @@ export default defineBackground(() => {
     const currentVersion = browser.runtime.getManifest().version;
     if (!previousVersion || previousVersion === currentVersion) return;
 
-    const stored = await browser.storage.local.get("general.showWhatsNewOnUpdate");
-    const optedIn =
-      (stored["general.showWhatsNewOnUpdate"] as boolean | undefined) ??
-      DEFAULT_SETTINGS.general.showWhatsNewOnUpdate;
+    const optedIn = await showWhatsNewOnUpdateItem.getValue();
     if (!optedIn) {
       console.log(
         `[Oriole] Update ${previousVersion} -> ${currentVersion}; What's New disabled by user`,
@@ -360,9 +362,8 @@ export default defineBackground(() => {
 
       switch (command) {
         case "toggle-mute": {
-          const stored = await browser.storage.local.get("general.muted");
-          const wasMuted = (stored["general.muted"] as boolean) ?? false;
-          await browser.storage.local.set({ "general.muted": !wasMuted });
+          const wasMuted = await mutedItem.getValue();
+          await mutedItem.setValue(!wasMuted);
           const message = wasMuted ? "Oriole unmuted" : "Oriole muted";
           // Show badge text on extension icon (action for MV3, browserAction for MV2)
           const badgeApi = browser.action ?? browser.browserAction;
@@ -386,12 +387,9 @@ export default defineBackground(() => {
         }
 
         case "toggle-mute-when-blurred": {
-          const stored = await browser.storage.local.get("general.muteWhenBlurred");
-          const current =
-            (stored["general.muteWhenBlurred"] as boolean | undefined) ??
-            DEFAULT_SETTINGS.general.muteWhenBlurred;
+          const current = await muteWhenBlurredItem.getValue();
           const next = !current;
-          await browser.storage.local.set({ "general.muteWhenBlurred": next });
+          await muteWhenBlurredItem.setValue(next);
           logger.info(`Mute when unfocused toggled: ${current} -> ${next}`);
 
           try {

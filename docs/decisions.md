@@ -6,6 +6,22 @@ Reverse chronological (newest first).
 
 ---
 
+## Typed WXT storage items for UI, BrowserSettingsStore for modules
+
+UI entry points (popup, options, background command handlers) now read and write settings through typed storage items defined in `extension/core/settings/items.ts` via WXT's `storage.defineItem()`. Each item wraps one `browser.storage.local` key with a compile-time type and a fallback default sourced from `CONFIG`. The module system continues to use `BrowserSettingsStore`, which provides the generic `SettingsStore` interface that `ModuleContext` exposes and that `InMemorySettingsStore` doubles in tests.
+
+The two layers coexist because they serve different constraints. Modules need a swappable interface for testing (`InMemorySettingsStore`). UI code needs per-key type safety and centralised defaults so a key string typo or a missing fallback is caught at compile time rather than surfacing as a silent `undefined` at runtime. Both layers operate on the same flat dot-notation keys in the same `browser.storage.local` area, so changes from either side propagate through `storage.onChanged` as before.
+
+`eventConfigItem(eventId)` is a factory rather than a pre-instantiated map because the event registry is large and most events are never customised. Constructing 60+ `WxtStorageItem` instances at module load would be wasted allocation.
+
+## WxtVitest plugin and fakeBrowser for extension tests
+
+The extension's Vitest config now uses `WxtVitest()` from `wxt/testing/vitest-plugin`, which auto-polyfills browser APIs via `fakeBrowser`. This replaces the manual `chrome`/`browser` stub setup that each test file previously maintained. `fakeBrowser` provides in-memory stubs for storage, runtime, and event objects — tests that need to fire events like `windows.onFocusChanged` call `fakeBrowser.windows.onFocusChanged.trigger(windowId)` instead of constructing mock listener arrays.
+
+Not every event surface in `fakeBrowser` is fully implemented; some throw "not implemented" when `addListener` is called. `EventEngine.registerAll()` wraps `addListener` in a try-catch and logs a warning on failure, so unsupported events degrade gracefully in both tests and any future browser API gaps in production. This is a genuine robustness improvement, not just a test-support hack.
+
+---
+
 ## Mute sounds when browser is unfocused
 
 A new `general.muteWhenBlurred` toggle (default off, exposed in the Sound Controls section of the General tab) tells the sound engine to suppress every cue while no browser window has focus. It composes with `general.muted` — either flag short-circuits the hot path. When the user comes back to the browser, mute-by-blur clears and normal cues resume; the `windows.onFocused` cue plays as the welcome-back signal if the user has that event enabled.

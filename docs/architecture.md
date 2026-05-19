@@ -115,9 +115,13 @@ The user base is dominated by NVDA and VoiceOver users. Accessibility is a hard 
 
 ## Settings storage
 
-`BrowserSettingsStore` ([`extension/core/settings/browser-store.ts`](../extension/core/settings/browser-store.ts)) is backed by `browser.storage.local`. Keys are flat dot-notation strings (`general.masterVolume`, `sounds.events.tabs.onCreated`), built by flattening the nested `DEFAULT_SETTINGS` tree at startup. `browser.storage.local`'s `get/set` operate on top-level keys and `onChanged` events fire on top-level keys, so flat storage gives cheap single-key reads and per-key watchers.
+Two layers talk to `browser.storage.local`, each serving a different consumer:
 
-Reading nested objects requires multiple `get` calls - the trade-off is worth it because the service worker frequently sleeps and wakes, and a single-key warm cache is valuable.
+**Module system (background):** `BrowserSettingsStore` ([`extension/core/settings/browser-store.ts`](../extension/core/settings/browser-store.ts)) exposes a generic `get/set/watch` interface to modules via `ModuleContext`. Keys are flat dot-notation strings (`general.masterVolume`, `sounds.events.tabs.onCreated`), built by flattening the nested `DEFAULT_SETTINGS` tree at startup. Flat storage gives cheap single-key reads and per-key watchers, which matters because the service worker frequently sleeps and wakes.
+
+**UI layer (popup, options, background commands):** Typed storage items defined in [`extension/core/settings/items.ts`](../extension/core/settings/items.ts) via WXT's `storage.defineItem()`. Each item wraps one storage key with a compile-time type, a fallback default from `CONFIG`, and a typed API (`getValue`, `setValue`, `removeValue`, `watch`). UI components import individual items instead of passing raw key strings to `browser.storage.local`.
+
+Both layers read and write the same underlying keys in the same storage area. The split exists because the module system needs a generic `SettingsStore` interface (swappable with `InMemorySettingsStore` in tests), while UI code benefits from per-key type safety and centralised defaults.
 
 ## Logger and log server
 
@@ -139,7 +143,7 @@ Vitest. Three test scopes:
 | `@oriole/log-server` | Node        | `__tests__/*.test.ts` colocated with source                                                      |
 | `oriole-extension`   | jsdom       | `core/**/__tests__/*.test.ts`, `shared/**/__tests__/*.test.ts`, `modules/**/__tests__/*.test.ts` |
 
-The extension uses jsdom because some non-UI code touches DOM-shaped APIs. Browser globals are mocked per-test, not globally.
+The extension uses jsdom because some non-UI code touches DOM-shaped APIs. The `WxtVitest()` plugin from `wxt/testing/vitest-plugin` auto-polyfills browser APIs via `fakeBrowser` from `wxt/testing`, which provides in-memory stubs for `browser.storage`, `browser.runtime`, and event objects like `browser.windows.onFocusChanged`. Tests that need to fire browser events use `fakeBrowser.<api>.trigger()` rather than manual stubs.
 
 Two contract tests in [`event-registry.test.ts`](../extension/modules/sound-engine/__tests__/event-registry.test.ts) protect cross-cutting invariants:
 
@@ -187,7 +191,7 @@ The `extension/` directory contains:
 - `core/` - cross-cutting infrastructure:
   - `module-system/` - `OrioleModule`, `ModuleRegistry`, `ModuleLoader`.
   - `message-bus/` - in-process pub/sub.
-  - `settings/` - `SettingsStore` over `browser.storage.local`.
+  - `settings/` - `BrowserSettingsStore` (module system), `items.ts` (typed WXT storage items for UI).
   - `messaging/` - typed `chrome.runtime.sendMessage` wrapper.
 - `modules/sound-engine/` - the audio feature module:
   - `index.ts` - `SoundEngineModule`.
@@ -224,7 +228,7 @@ extension/
 ├── core/                               # Cross-cutting infrastructure
 │   ├── module-system/                  # OrioleModule, ModuleRegistry, ModuleLoader
 │   ├── message-bus/                    # In-process pub/sub
-│   ├── settings/                       # SettingsStore over browser.storage.local
+│   ├── settings/                       # BrowserSettingsStore + typed WXT storage items
 │   └── messaging/                      # Typed chrome.runtime.sendMessage wrapper
 ├── modules/sound-engine/               # The audio feature module
 │   ├── index.ts                        # SoundEngineModule
