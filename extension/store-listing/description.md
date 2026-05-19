@@ -8,11 +8,11 @@ Check character count before publishing:
     wc -c extension/store-listing/description.md
 -->
 
-# Finch — audio cues for browser events
+# Finch — a songbird for your browser
 
 Finch plays short audio cues when things happen in your browser. A tab opens. A download finishes. A page loads. A bookmark gets saved. Instead of checking the screen for visual indicators, you hear it.
 
-Named after the songbird — small, distinct calls, one per event.
+Named after the bird. Finches are small songbirds known for their varied, distinctive calls — each species has its own song. This extension works the same way: each browser event gets its own short, recognizable sound.
 
 ## Who this is for
 

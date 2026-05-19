@@ -1,7 +1,7 @@
 {
   "name": "finch",
   "version": "0.1.0",
-  "description": "Audio feedback browser extension — sounds for tabs, bookmarks, downloads, and navigation. A richer browsing experience for everyone.",
+  "description": "Hear your browser — short audio cues for tabs, downloads, bookmarks, and navigation. A songbird for your browsing experience.",
   "author": "Akash Kakkar (https://github.com/akash07k/)",
   "license": "AGPL-3.0-only",
   "homepage": "https://github.com/akash07k/finch",

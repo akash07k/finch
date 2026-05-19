@@ -40,7 +40,7 @@ export default defineConfig({
   manifest: {
     name: "Finch",
     description:
-      "Hear your browser — audio cues for tabs, bookmarks, downloads, and navigation. A richer browsing experience for everyone.",
+      "Hear your browser — short audio cues for tabs, downloads, bookmarks, and navigation. 63 events, per-event controls, zero tracking.",
     homepage_url: "https://github.com/akash07k/finch",
     minimum_chrome_version: "140",
     // Persistent development key — keeps the Chrome extension ID stable

@@ -1,6 +1,8 @@
 # Finch
 
-Audio cues for browser events. Finch plays short sounds when things happen in your browser — a tab opens, a download finishes, a page loads, a bookmark gets added. Built for screen-reader users who miss the visual cues sighted users take for granted. Also useful as ambient feedback for anyone who doesn't want to watch the screen to know what's happening.
+**Hear your browser.** Finch plays short audio cues when things happen — a tab opens, a download finishes, a page loads, a bookmark gets added. Built for screen-reader users who miss the visual cues sighted users take for granted. Also useful as ambient feedback for anyone who doesn't want to watch the screen to know what's happening.
+
+Named after the bird. Finches are songbirds known for their varied, distinctive calls. This extension works the same way: each browser event gets its own short, recognizable sound.
 
 ## Install
 
