@@ -103,6 +103,14 @@ export default defineConfig({
       if (wxt.config.mode === "production") {
         delete (manifest as Record<string, unknown>).key;
       }
+
+      // Allow version override without editing package.json:
+      //   FINCH_VERSION=1.0.1 pnpm zip:chrome
+      const versionOverride = process.env.FINCH_VERSION;
+      if (versionOverride) {
+        manifest.version = versionOverride;
+        manifest.version_name = versionOverride;
+      }
     },
   },
 });
