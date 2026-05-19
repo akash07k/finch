@@ -13,7 +13,12 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { sendLog, sendExportLogs, sendClearLogs } from "@/core/messaging/send";
+import {
+  sendLog,
+  sendConnectLogServer,
+  sendExportLogs,
+  sendClearLogs,
+} from "@/core/messaging/send";
 import {
   Select,
   SelectContent,
@@ -104,14 +109,15 @@ export function LoggingTab() {
       // Tell the background script to connect now. The user's preference is
       // already persisted above; if the message fails (service worker asleep
       // or crashed), surface that to the user instead of silently flipping.
-      try {
-        await browser.runtime.sendMessage({ type: "CONNECT_LOG_SERVER" });
+      const response = await sendConnectLogServer();
+      if (response.success) {
         announce("Log streaming enabled. Connecting to log server...", "assertive");
         sendLog("info", "Log streaming enabled by user");
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+      } else {
         announce("Could not start log streaming. Try reloading the extension.", "assertive");
-        sendLog("warn", "Failed to start log stream", { error: message });
+        sendLog("warn", "Failed to start log stream", {
+          error: response.error ?? "unknown",
+        });
       }
     } else {
       // Disconnecting requires extension reload (transport can't be removed at runtime)

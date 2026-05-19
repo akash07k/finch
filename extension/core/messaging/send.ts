@@ -10,6 +10,7 @@
 
 import type {
   LogMessage,
+  ConnectLogServerMessage,
   PreviewSoundMessage,
   ExportLogsMessage,
   ClearLogsMessage,
@@ -43,6 +44,27 @@ export async function sendLog(
   } catch {
     // Background script might not be running — fall back to console
     console.log(`[Finch ${level.toUpperCase()}] ${message}`, data ?? "");
+  }
+}
+
+/**
+ * Ask the background script to attach the WebSocket log transport.
+ *
+ * Sent from the Logging tab when the user enables log streaming. The
+ * background reads the configured URL from settings and attaches a
+ * `WebSocketTransport` to the existing logger.
+ */
+export async function sendConnectLogServer(): Promise<ExtensionResponse> {
+  try {
+    const response = await browser.runtime.sendMessage({
+      type: "CONNECT_LOG_SERVER",
+    } satisfies ConnectLogServerMessage);
+    return response as ExtensionResponse;
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 

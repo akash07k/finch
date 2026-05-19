@@ -14,6 +14,7 @@
  */
 export type ExtensionMessage =
   | LogMessage
+  | ConnectLogServerMessage
   | PreviewSoundMessage
   | ExportLogsMessage
   | ClearLogsMessage;
@@ -27,6 +28,14 @@ export interface LogMessage {
   level: "debug" | "info" | "warn" | "error" | "fatal";
   message: string;
   data?: Record<string, unknown>;
+}
+
+/**
+ * Request the background script to connect the WebSocket log transport.
+ * Sent by the Logging tab when the user enables log streaming.
+ */
+export interface ConnectLogServerMessage {
+  type: "CONNECT_LOG_SERVER";
 }
 
 /**
