@@ -6,6 +6,20 @@ Reverse chronological (newest first).
 
 ---
 
+## Architecture deepening: message router, schema-derived flat defaults, play pipeline
+
+Three deepening refactors landed together after an architecture review.
+
+**Message router** (`core/messaging/router.ts` + `core/messaging/handlers/*.ts`): the 97-line `setupMessageListener` switch in `background.ts` was a god-object for trust-checking, dispatch, sync/async response wiring, and inline business logic for five message types. Replaced with a typed `MessageRouter` that handles the cross-cutting concerns once and a handler-per-file convention. Each handler closes over its dependencies (logger, settings, IDB transport, sound-engine module) so adding a new message type is a new file plus a `router.register(...)` line — no edits to dispatch code. `sendConnectLogServer` rounds out the send-side helpers so `LoggingTab` doesn't construct raw messages anymore.
+
+**Schema-derived flat defaults** (`core/settings/flatten.ts` + `FLAT_DEFAULTS` in `defaults.ts`): the manual `for (const [k, v] of Object.entries(DEFAULT_SETTINGS.general))` loops in `background.ts` were a stringly-typed mine field — every new section needed a new manual flatten block. `flattenSettings()` walks any plain-object root and produces the dot-notation map, including hotkey-binding keys that themselves contain colons (`global:toggle-mute`). Arrays stay as leaves so `general.enabledModules` doesn't expand to `0`, `1`, `2`. Class instances stay as leaves so future non-plain-object settings can pass through unchanged.
+
+**Schema validation at the write boundary** (`core/settings/validate.ts`): the Zod schema used to be parsed once at boot (for defaults) and then ignored. `validateEventConfig` runs it again on user input — a slider bug that produced `volume: 999` used to land in storage unchecked; now it's rejected with an assertive announcement before the write. Started with event configs because that's the most exposed surface (sliders writing on every drag); extending validation to other write paths is incremental.
+
+**Play-decision pipeline** (`modules/sound-engine/play-pipeline.ts`): `SoundEngineModule.handleBrowserEvent` was a 100-line gate ladder inside a private method that could only be reached by booting the full module and publishing on the message bus. `decidePlay(message, gates)` is now a pure-ish function (one side effect — atomic cooldown commit on admission) that returns either a `PlayCommand` or a structured `SkipReason`. The module is left with three responsibilities: build the gates object per event, route skip reasons to log levels, await the backend play and log the outcome. Tests now exercise every skip path with plain `Map`/mock gates instead of constructing a `ModuleContext`.
+
+**Module system reviewed and kept**: the architecture review surfaced the module system (4-stage lifecycle, Kahn's topo sort, registry, ModuleContext) as ceremony for one feature module. Kept as designed because the cost of removal (rebuild boot orchestration in `background.ts`, lose `InMemorySettingsStore` test-time substitution, lose the message-bus-only inter-module contract) outweighs the cost of carrying ~290 lines of correct, tested infrastructure. Revisit if Finch is still one module at v2.0, or if the second module pattern turns out to look nothing like sound-engine.
+
 ## Architecture deepening: hooks, Zod schema, theme loader, messaging
 
 Six targeted refactors to reduce duplication and increase module depth:
