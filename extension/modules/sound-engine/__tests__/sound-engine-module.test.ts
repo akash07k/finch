@@ -16,7 +16,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fakeBrowser } from "wxt/testing";
+import { fakeBrowser } from "#imports";
 import { SoundEngineModule } from "../index.js";
 import { BROWSER_EVENT_CHANNEL, type BrowserEventMessage } from "../event-engine.js";
 import { MessageBusImpl } from "../../../core/message-bus/bus.js";

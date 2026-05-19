@@ -12,6 +12,7 @@
  * {@link BrowserSettingsStore} — these items are for the UI layer only.
  */
 
+import { storage } from "#imports";
 import { CONFIG } from "../../config/index.js";
 import type { LogLevel } from "@oriole/logger";
 
