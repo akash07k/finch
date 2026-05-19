@@ -133,8 +133,8 @@ Reading nested objects requires multiple `get` calls - the trade-off is worth it
 
 Vitest. Three test scopes:
 
-| Package                    | Environment | Pattern                                                                                          |
-| -------------------------- | ----------- | ------------------------------------------------------------------------------------------------ |
+| Package              | Environment | Pattern                                                                                          |
+| -------------------- | ----------- | ------------------------------------------------------------------------------------------------ |
 | `@oriole/logger`     | Node        | `__tests__/*.test.ts` colocated with source                                                      |
 | `@oriole/log-server` | Node        | `__tests__/*.test.ts` colocated with source                                                      |
 | `oriole-extension`   | jsdom       | `core/**/__tests__/*.test.ts`, `shared/**/__tests__/*.test.ts`, `modules/**/__tests__/*.test.ts` |
