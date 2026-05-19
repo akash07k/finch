@@ -20,28 +20,18 @@ import type { AudioBackend } from "./audio-backends/types.js";
 import { EventEngine, BROWSER_EVENT_CHANNEL, type BrowserEventMessage } from "./event-engine.js";
 import { ThemeManager } from "./theme-manager.js";
 import { loadBuiltInThemes } from "./theme-loader.js";
-import { EVENT_REGISTRY, EVENT_REGISTRY_BY_ID } from "./event-registry.js";
+import { EVENT_REGISTRY } from "./event-registry.js";
 import { createWindowFocusEvents } from "./windows-focus-router.js";
 import { CooldownGate } from "./cooldown-gate.js";
 import { BUILT_IN_THEMES, DEFAULT_THEME_ID } from "../../config/themes.js";
-import { getEventDefaults } from "../../config/events.js";
 import { CONFIG } from "../../config/index.js";
 import { DEFAULT_SETTINGS } from "../../core/settings/defaults.js";
 import { getAssetURL } from "../../shared/platform/url.js";
+import { decidePlay, type SkipReason } from "./play-pipeline.js";
+import type { EventConfig } from "../../core/settings/schema.js";
 
 /** Module ID used for registration and dependency references. */
 const SOUND_ENGINE_MODULE_ID = "sound-engine";
-
-/**
- * Shape of the per-event user override stored under `sounds.events.<id>`.
- * Fields are optional (absent = "use registry default") except `enabled`,
- * which is the authoritative on/off for the event.
- */
-interface EventConfig {
-  enabled: boolean;
-  volume?: number;
-  pitch?: number;
-}
 
 /**
  * Sound engine module — implements FinchModule.
@@ -393,84 +383,50 @@ export class SoundEngineModule implements FinchModule {
   }
 
   /**
-   * Handle a browser event by resolving and playing the appropriate sound.
+   * Resolve a handler-supplied filename to a full URL against the
+   * active theme. Pulled out so the play pipeline doesn't have to
+   * know about `BUILT_IN_THEMES` or `getAssetURL`.
+   */
+  private resolveOverrideUrl = (filename: string): string | null => {
+    const activeTheme = this.themeManager?.getActiveThemeId();
+    const themeInfo = activeTheme ? BUILT_IN_THEMES.find((t) => t.id === activeTheme) : null;
+    return themeInfo ? `${getAssetURL(themeInfo.path)}/${filename}` : null;
+  };
+
+  /**
+   * Handle a browser event: ask the pipeline whether to play, then
+   * play and log. The pipeline owns the gate ordering and the
+   * cooldown commit semantics — this method is left with just the
+   * I/O (backend.play) and the log routing.
    *
-   * **Hot path — stays synchronous** until the `backend.play()` await at
-   * the end. Mute + per-event config are read from in-memory caches
-   * (populated at activate(), kept fresh via settings.watch) instead
-   * of awaiting `settings.get`, which avoids two async storage reads
-   * per event. For a busy session that's hundreds of saved hops per
-   * second and tighter race windows for the cooldown gate.
+   * The early bail keeps the hot path sync until backend.play; the
+   * pipeline returns a decision without any await, so a busy session
+   * still settles its cooldown timestamps before the next event
+   * arrives.
    */
   private async handleBrowserEvent(message: BrowserEventMessage): Promise<void> {
-    if (!this.context || !this.backend || !this.themeManager) return;
+    if (!this.context || !this.backend || !this.themeManager || !this.cooldownGate) return;
     const { logger } = this.context;
 
-    // Mute — from the in-memory cache populated by activate() and the
-    // "general.muted" watcher.
-    if (this.muted) return;
+    const decision = decidePlay(message, {
+      muted: this.muted,
+      muteWhenBlurred: this.muteWhenBlurred,
+      browserFocused: this.browserFocused,
+      eventConfigs: this.eventConfigs,
+      cooldownGate: this.cooldownGate,
+      themeManager: this.themeManager,
+      resolveOverrideUrl: this.resolveOverrideUrl,
+    });
 
-    // Mute-when-blurred composes with `muted`: when the user has
-    // opted in and no browser window currently has focus, suppress
-    // every cue including the `windows.onUnfocused` cue itself. The
-    // windows-focus-router fires its focus-state callback BEFORE
-    // publishing its sound events, so `browserFocused` is up to date
-    // by the time the unfocus message arrives here.
-    if (this.muteWhenBlurred && !this.browserFocused) return;
-
-    // Find the event definition to get its tier. O(1) Map lookup —
-    // the handleBrowserEvent hot path sees every fire.
-    const eventDef = EVENT_REGISTRY_BY_ID.get(message.eventId);
-    if (!eventDef) {
-      logger.warn("Unknown event ID in message", { eventId: message.eventId });
+    if (!decision.play) {
+      logSkip(decision.reason, logger);
       return;
     }
 
-    // Per-event config — user override from cache → registry default.
-    const eventConfig = this.eventConfigs.get(message.eventId);
-    const isEnabled = eventConfig?.enabled ?? getEventDefaults(message.eventId).enabled;
-    if (!isEnabled) return;
-
-    // Cooldown / debounce gate. Runs AFTER the enabled check so that
-    // disabled events cannot consume the cooldown window. Higher-priority
-    // events can preempt lower-priority ones already in the window —
-    // important for cascades like bfcache back/forward where
-    // onBeforeNavigate (priority 0) and onCompleted (priority 10) fire
-    // in the same millisecond.
-    const debounceMs = getEventDefaults(message.eventId).debounceMs;
-    const priority = eventDef.priority ?? 0;
-    if (this.cooldownGate && !this.cooldownGate.tryEnter(message.eventId, debounceMs, priority)) {
-      return;
-    }
-
-    // Resolve which sound to play — handler soundOverride takes priority
-    let soundUrl: string | null;
-    if (message.soundOverride) {
-      // Handler specified a sound file — resolve relative to the active theme
-      const activeTheme = this.themeManager.getActiveThemeId();
-      const themeInfo = activeTheme ? BUILT_IN_THEMES.find((t) => t.id === activeTheme) : null;
-      if (themeInfo) {
-        soundUrl = `${getAssetURL(themeInfo.path)}/${message.soundOverride}`;
-      } else {
-        soundUrl = null;
-      }
-    } else {
-      soundUrl = this.themeManager.resolveSound(
-        message.eventId,
-        eventDef.tier,
-        eventDef.isError ?? false,
-      );
-    }
-
-    if (!soundUrl) {
-      logger.debug("No sound mapped for event", { eventId: message.eventId });
-      return;
-    }
-
-    // Play the sound with per-event overrides
-    const result = await this.backend.play(soundUrl, {
-      volume: eventConfig?.volume !== undefined ? eventConfig.volume / 100 : undefined,
-      rate: eventConfig?.pitch,
+    const { command } = decision;
+    const result = await this.backend.play(command.soundUrl, {
+      volume: command.volume,
+      rate: command.rate,
     });
 
     // Log the result with the event label, extracted event data
@@ -478,28 +434,49 @@ export class SoundEngineModule implements FinchModule {
     // function), and any extra data attached by a custom handler.
     const logData: Record<string, unknown> = {
       eventId: message.eventId,
-      sound: soundUrl,
+      sound: command.soundUrl,
       ...message.extractedData,
       ...message.handlerData,
     };
 
-    // Cooldown was already committed inside tryEnter(); nothing to do here
-    // beyond logging the outcome. A failed play still consumes the cooldown
-    // window for ~150ms but that's a rare backend failure and acceptable.
-    //
-    // For error events, surface the error reason in the message text itself
-    // (not just in the data field) so it shows up in HTML and CSV log
-    // exports that only render the message column.
+    // For error events, surface the error reason in the message text
+    // (not just in data) so HTML and CSV exports that only render
+    // the message column still carry it.
     const errorReason =
-      eventDef.isError && typeof message.extractedData?.error === "string"
+      command.eventDef.isError && typeof message.extractedData?.error === "string"
         ? `: ${message.extractedData.error}`
         : "";
 
     if (result.success) {
-      logger.info(`${eventDef.label} sound played (${result.latencyMs}ms)${errorReason}`, logData);
+      logger.info(
+        `${command.eventDef.label} sound played (${result.latencyMs}ms)${errorReason}`,
+        logData,
+      );
     } else {
-      logger.warn(`${eventDef.label} sound failed: ${result.error}`, logData);
+      logger.warn(`${command.eventDef.label} sound failed: ${result.error}`, logData);
     }
+  }
+}
+
+/**
+ * Route skip reasons to the right log level. Most skips (muted,
+ * blurred, disabled, cooldown) are expected during normal use and
+ * stay silent — only the two diagnostic ones produce log output.
+ */
+function logSkip(reason: SkipReason, logger: ModuleContext["logger"]): void {
+  switch (reason.kind) {
+    case "unknown-event":
+      logger.warn("Unknown event ID in message", { eventId: reason.eventId });
+      return;
+    case "no-sound":
+      logger.debug("No sound mapped for event", { eventId: reason.eventId });
+      return;
+    case "muted":
+    case "blurred":
+    case "disabled":
+    case "cooldown":
+      // Expected suppression — silent on purpose.
+      return;
   }
 }
 
