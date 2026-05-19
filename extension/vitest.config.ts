@@ -1,12 +1,15 @@
 import { defineConfig } from "vitest/config";
+import { WxtVitest } from "wxt/testing/vitest-plugin";
 
 /**
  * Vitest configuration for the Oriole extension.
  *
- * Uses jsdom environment for tests that need DOM APIs (a11y utilities).
- * Browser extension APIs (like chrome.*) are mocked in individual tests.
+ * WxtVitest() provides browser API polyfilling via fakeBrowser,
+ * applies Vite config from wxt.config.ts, configures path aliases,
+ * and sets up import.meta.env.BROWSER / MANIFEST_VERSION globals.
  */
 export default defineConfig({
+  plugins: [WxtVitest()],
   test: {
     globals: true,
     environment: "jsdom",

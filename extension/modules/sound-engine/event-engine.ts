@@ -133,7 +133,14 @@ export class EventEngine {
           );
         });
       };
-      eventApi.addListener(handler);
+      try {
+        eventApi.addListener(handler);
+      } catch {
+        this.logger.warn(`Failed to attach listener for "${definition.id}"`, {
+          event: definition.id,
+        });
+        continue;
+      }
       this.registeredListeners.push({ eventApi, handler });
 
       this.logger.debug(`Registered listener for ${definition.id}`);

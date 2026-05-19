@@ -16,6 +16,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { fakeBrowser } from "wxt/testing";
 import { SoundEngineModule } from "../index.js";
 import { BROWSER_EVENT_CHANNEL, type BrowserEventMessage } from "../event-engine.js";
 import { MessageBusImpl } from "../../../core/message-bus/bus.js";
@@ -120,19 +121,7 @@ describe("SoundEngineModule integration", () => {
   let module: SoundEngineModule;
 
   beforeEach(() => {
-    // Stub runtime.getURL for ThemeManager + module internals. Both
-    // `browser` and `chrome` are stubbed: the module resolves asset
-    // URLs through `browser.runtime.getURL` (via the shared
-    // getAssetURL helper) while EventEngine.registerAll still indexes
-    // into the chrome namespace. It warns and skips most events
-    // because no real browser API is present.
-    const runtimeStub = {
-      runtime: {
-        getURL: (path: string) => `chrome-extension://test/${path}`,
-      },
-    };
-    (globalThis as unknown as { chrome: unknown }).chrome = runtimeStub;
-    (globalThis as unknown as { browser: unknown }).browser = runtimeStub;
+    fakeBrowser.reset();
 
     // ThemeManager fetches theme.json from the extension URL; mock to
     // return our compact test manifest rather than loading from disk.
@@ -164,8 +153,6 @@ describe("SoundEngineModule integration", () => {
   afterEach(async () => {
     await module.dispose();
     vi.unstubAllGlobals();
-    delete (globalThis as unknown as { chrome?: unknown }).chrome;
-    delete (globalThis as unknown as { browser?: unknown }).browser;
   });
 
   it("plays the mapped sound when an enabled event fires", async () => {
@@ -282,36 +269,14 @@ describe("SoundEngineModule integration", () => {
 
   describe("muteWhenBlurred", () => {
     /**
+     * Fire a windows.onFocusChanged event via fakeBrowser.
      * The hot-path mute-when-blurred gate reads `browserFocused`,
      * which is fed by the windows-focus-router's onFocusStateChange
-     * callback. The router's handler is wired into the engine via
-     * EventEngine.registerAll(), which addsListener on
-     * `chrome.windows.onFocusChanged`. To drive the focus state from
-     * a test we extend the chrome/browser stub with a windows API
-     * that captures the registered listener, then invoke it directly.
+     * callback wired through EventEngine.registerAll().
      */
-    function installWindowsApi(): {
-      fire: (windowId: number) => Promise<void>;
-    } {
-      const listeners: ((windowId: unknown) => void)[] = [];
-      const stub = (globalThis as unknown as { chrome: Record<string, unknown> }).chrome;
-      stub.windows = {
-        onFocusChanged: {
-          addListener: (fn: (windowId: unknown) => void) => listeners.push(fn),
-          removeListener: (fn: (windowId: unknown) => void) => {
-            const i = listeners.indexOf(fn);
-            if (i >= 0) listeners.splice(i, 1);
-          },
-        },
-      };
-      (globalThis as unknown as { browser: Record<string, unknown> }).browser.windows =
-        stub.windows;
-      return {
-        fire: async (windowId: number) => {
-          for (const fn of listeners) fn(windowId);
-          await drainMicrotasks();
-        },
-      };
+    async function fireWindowsFocus(windowId: number): Promise<void> {
+      fakeBrowser.windows.onFocusChanged.trigger(windowId);
+      await drainMicrotasks();
     }
 
     const WINDOW_ID_NONE = -1;
@@ -326,7 +291,6 @@ describe("SoundEngineModule integration", () => {
     });
 
     it("suppresses when muteWhenBlurred=true and the browser is unfocused", async () => {
-      const { fire } = installWindowsApi();
       await settings.set("general.muteWhenBlurred", true);
       await module.initialize(context);
       await module.activate();
@@ -335,7 +299,7 @@ describe("SoundEngineModule integration", () => {
       // wait the full debounce. The router's onFocusStateChange
       // callback flips `browserFocused` to false BEFORE the unfocus
       // event publishes downstream.
-      await fire(WINDOW_ID_NONE);
+      await fireWindowsFocus(WINDOW_ID_NONE);
       await vi.advanceTimersByTimeAsync(WINDOW_SWITCH_DEBOUNCE_MS);
       await drainMicrotasks();
       backend.plays.length = 0; // discard any unfocus cue from the router itself
@@ -348,7 +312,7 @@ describe("SoundEngineModule integration", () => {
     });
 
     it("emits while focused regardless of muteWhenBlurred", async () => {
-      installWindowsApi(); // initial state is focused; no events needed
+      // initial state is focused; no events needed
       await settings.set("general.muteWhenBlurred", true);
       await module.initialize(context);
       await module.activate();
@@ -360,13 +324,12 @@ describe("SoundEngineModule integration", () => {
     });
 
     it("emits when muteWhenBlurred=false even while unfocused", async () => {
-      const { fire } = installWindowsApi();
       // Default is false; spell it out for the reader.
       await settings.set("general.muteWhenBlurred", false);
       await module.initialize(context);
       await module.activate();
 
-      await fire(WINDOW_ID_NONE);
+      await fireWindowsFocus(WINDOW_ID_NONE);
       await vi.advanceTimersByTimeAsync(WINDOW_SWITCH_DEBOUNCE_MS);
       await drainMicrotasks();
       backend.plays.length = 0;
@@ -383,13 +346,12 @@ describe("SoundEngineModule integration", () => {
     });
 
     it("resumes emitting after focus returns", async () => {
-      const { fire } = installWindowsApi();
       await settings.set("general.muteWhenBlurred", true);
       await module.initialize(context);
       await module.activate();
 
       // Unfocus → settled → suppressed.
-      await fire(WINDOW_ID_NONE);
+      await fireWindowsFocus(WINDOW_ID_NONE);
       await vi.advanceTimersByTimeAsync(WINDOW_SWITCH_DEBOUNCE_MS);
       await drainMicrotasks();
       backend.plays.length = 0;
@@ -402,7 +364,7 @@ describe("SoundEngineModule integration", () => {
       // browserFocused flips → next event plays. The focused cue
       // itself plays (Tier 1, default-enabled) and seeds the global
       // cooldown, so step past it before publishing the test event.
-      await fire(7);
+      await fireWindowsFocus(7);
       await drainMicrotasks();
       backend.plays.length = 0;
       await vi.advanceTimersByTimeAsync(CONFIG.soundEngine.globalCooldownMs + 10);
