@@ -395,7 +395,7 @@ export function SoundEventsTab() {
         {/* ONE count update after they stop typing. announcedMatchCount   */}
         {/* starts as null so no announcement fires on initial mount.     */}
         {/* Phrasing mirrors the visible count so SR and sighted users    */}
-        {/* get the same denominator — catches the "20 of 63 events"     */}
+        {/* get the same denominator — catches the "20 of 64 events"     */}
         {/* vs "20 of 20 essential events" mismatch that confused              */}
         {/* screen-reader users during testing.                  */}
         <div className="sr-only" aria-live="polite" aria-atomic="true">

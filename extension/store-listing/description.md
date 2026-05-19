@@ -22,13 +22,13 @@ If you're not a screen-reader user, Finch is still useful as ambient feedback fo
 
 ## What you hear
 
-63 events across three tiers. Pick the detail level you want.
+64 events on Chrome, 59 on Firefox, across three tiers. Pick the detail level you want.
 
-Tier 1 — Essential (26 events enabled by default): tab created, tab closed, tab switched, page loading, page loaded, navigation error, download started, download complete, download failed, bookmark added, bookmark removed, window opened, window closed, window focused, tab title changed, extension installed, and more. The events most people want out of the box.
+Tier 1 — Essential (25 on Chrome, 26 on Firefox — enabled by default): tab created, tab closed, tab switched, page loading, page loaded, navigation error, download started, download complete, download failed, bookmark added, bookmark removed, window opened, window closed, window focused, tab title changed, extension installed, and more. The events most people want out of the box. Firefox includes a notification-shown event not available on Chrome.
 
-Tier 2 — Useful (37 events, opt-in): tab muted/unmuted, tab pinned, tab zoomed, URL visited, history cleared, tab group changes, system idle, system locked, omnibox interactions, cookie changes. Useful for specific workflows; each one requires a one-time permission prompt.
+Tier 2 — Useful (37 on Chrome, 32 on Firefox — opt-in): tab muted/unmuted, tab pinned, tab zoomed, URL visited, history cleared, system idle, system locked, omnibox interactions, cookie changes. Chrome adds tab groups and tab-replaced events. Useful for specific workflows; each one requires a one-time permission prompt.
 
-Tier 3 — Advanced (2 events, off by default): events that fire frequently enough to be noisy. Useful for debugging or very specific monitoring needs.
+Tier 3 — Advanced (2 on Chrome, 1 on Firefox — off by default): events that fire frequently enough to be noisy. Useful for debugging or very specific monitoring needs.
 
 Per-event debounce suppresses rapid duplicates — a page rewriting its title several times during load only triggers one cue.
 

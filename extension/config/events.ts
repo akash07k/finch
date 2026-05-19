@@ -29,7 +29,7 @@ interface EventDefaults {
 }
 
 /**
- * Ship-time defaults for all 63 browser events.
+ * Ship-time defaults for all 65 browser events.
  *
  * To change which events are enabled by default, edit this object.
  * To add volume/pitch overrides, add the fields to the event entry:

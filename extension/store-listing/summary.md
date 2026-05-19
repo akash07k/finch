@@ -14,4 +14,4 @@ Subtract the trailing newline `wc` counts to get the actual character
 count for the listing field.
 -->
 
-A songbird for your browser. Finch plays short, distinct audio cues when things happen - a tab opens, a download finishes, a page loads. 63 events with per-event volume and pitch. Built for screen-reader users. Zero data collection.
+A songbird for your browser. Finch plays short, distinct audio cues when things happen - a tab opens, a download finishes, a page loads. 65 events with per-event volume and pitch. Built for screen-reader users. Zero data collection.
