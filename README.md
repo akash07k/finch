@@ -6,8 +6,8 @@ Named after the bird. Finches are songbirds known for their varied, distinctive 
 
 ## Install
 
-- Chrome, Chromium, Edge, Brave: Finch on the Chrome Web Store (link pending first submission)
-- Firefox: Finch on Firefox Add-ons (link pending first submission)
+- Chrome, Chromium, Edge, Brave: [Finch on the Chrome Web Store](https://chromewebstore.google.com/detail/finch/oibdifnhdjolmckhjlcifnelbonfccfa)
+- Firefox: [Finch on Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/finch/)
 
 Both store versions auto-update. For pre-release builds, [GitHub Releases](https://github.com/akash07k/finch/releases) attaches Chrome and Firefox zips. Chrome: load unpacked via `chrome://extensions` developer mode. Firefox: temporary load via `about:debugging`. Sideloaded builds do not auto-update.
 
