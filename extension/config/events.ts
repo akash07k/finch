@@ -58,7 +58,7 @@ const EVENT_DEFAULTS: Readonly<Record<string, EventDefaults>> = {
   "tabs.onDetached": { enabled: true },
   "tabs.onAttached": { enabled: true },
 
-  // Navigation — only the start, end, and error signals fire by default.
+  // Navigation — only the start and end signals fire by default.
   // The mid-cascade phases (onCommitted, onDOMContentLoaded) and the
   // SPA pushState/replaceState event (onHistoryStateUpdated) are disabled
   // because they cluster within the cooldown window and produce no
@@ -67,7 +67,7 @@ const EVENT_DEFAULTS: Readonly<Record<string, EventDefaults>> = {
   "webNavigation.onCommitted": { enabled: false, debounceMs: 300 },
   "webNavigation.onDOMContentLoaded": { enabled: false, debounceMs: 300 },
   "webNavigation.onCompleted": { enabled: true, debounceMs: 300 },
-  "webNavigation.onErrorOccurred": { enabled: true },
+  "webNavigation.onErrorOccurred": { enabled: false },
   "webNavigation.onHistoryStateUpdated": { enabled: false, debounceMs: 500 },
 
   // Bookmarks

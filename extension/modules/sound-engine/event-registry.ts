@@ -202,32 +202,6 @@ const TIER_1_EVENTS: EventDefinition[] = [
       return { url: d?.url, tabId: d?.tabId, frameId: d?.frameId };
     },
   },
-  {
-    id: "webNavigation.onErrorOccurred",
-    namespace: "webNavigation",
-    event: "onErrorOccurred",
-    label: "Navigation Error",
-    description: "A navigation failed with an error.",
-    tier: 1,
-    category: "navigation",
-    platforms: ["chrome", "firefox"],
-
-    // Priority 20 — errors are critical and should preempt any
-    // in-flight navigation start/complete sound.
-    priority: 20,
-    isError: true,
-    permissions: ["webNavigation"],
-    extractData: (details: unknown) => {
-      const d = details as {
-        url?: string;
-        tabId?: number;
-        frameId?: number;
-        error?: string;
-      };
-      return { url: d?.url, tabId: d?.tabId, frameId: d?.frameId, error: d?.error };
-    },
-  },
-
   // === Bookmarks ===
   {
     id: "bookmarks.onCreated",
@@ -818,6 +792,31 @@ const TIER_2_EVENTS: EventDefinition[] = [
   },
 
   // === Navigation (extended) ===
+  {
+    id: "webNavigation.onErrorOccurred",
+    namespace: "webNavigation",
+    event: "onErrorOccurred",
+    label: "Navigation Error",
+    description: "A navigation failed with an error.",
+    tier: 2,
+    category: "navigation",
+    platforms: ["chrome", "firefox"],
+
+    // Priority 20 — errors are critical and should preempt any
+    // in-flight navigation start/complete sound.
+    priority: 20,
+    isError: true,
+    permissions: ["webNavigation"],
+    extractData: (details: unknown) => {
+      const d = details as {
+        url?: string;
+        tabId?: number;
+        frameId?: number;
+        error?: string;
+      };
+      return { url: d?.url, tabId: d?.tabId, frameId: d?.frameId, error: d?.error };
+    },
+  },
   {
     id: "webNavigation.onCreatedNavigationTarget",
     namespace: "webNavigation",

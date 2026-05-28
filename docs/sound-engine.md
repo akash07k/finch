@@ -75,7 +75,7 @@ interface EventDefinition {
 
 `EVENTS_BY_ID` is a `Map` keyed by `id` for O(1) lookup on the hot path. Built once at module load.
 
-The registry has 65 events (64 on Chrome, 59 on Firefox): 26 tier 1, 37 tier 2, 2 tier 3. Two contract tests in `__tests__/event-registry.test.ts` enforce:
+The registry has 65 events (64 on Chrome, 59 on Firefox): 25 tier 1, 38 tier 2, 2 tier 3. Two contract tests in `__tests__/event-registry.test.ts` enforce:
 
 - `EVENTS_BY_ID.size === EVENT_REGISTRY.length` and `EVENTS_BY_ID.get(e.id) === e` for every entry.
 - Every default-enabled event has a direct mapping in every built-in `theme.json`.

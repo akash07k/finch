@@ -15,7 +15,7 @@ Store-listing copy lives in [`extension/store-listing/`](./extension/store-listi
 
 ## What it does
 
-65 browser events across three tiers (64 on Chrome, 59 on Firefox — some events are platform-specific): 26 essential (Tier 1, enabled by default), 37 useful (Tier 2, opt-in), and 2 advanced (Tier 3). Every event has its own enable toggle, volume slider (0–100%), pitch slider (0.5x–2.0x), and preview button.
+65 browser events across three tiers (64 on Chrome, 59 on Firefox — some events are platform-specific): 25 essential (Tier 1, enabled by default), 38 useful (Tier 2, opt-in), and 2 advanced (Tier 3). Every event has its own enable toggle, volume slider (0–100%), pitch slider (0.5x–2.0x), and preview button.
 
 The Pulse sound theme ships built in — short, clean cues designed to sit under a screen reader's voice. The theme format is documented in [`docs/sound-themes.md`](./docs/sound-themes.md); in-extension theme import is planned for a future release.
 
