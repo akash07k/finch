@@ -4,6 +4,12 @@
 # the Actions tab. Tag-triggered runs verify the tag suffix matches
 # extension/package.json's version and fail fast on mismatch.
 #
+# Store submissions are independent — a Chrome failure does not block
+# Firefox, and vice versa. Artifacts and GitHub Releases are created
+# as long as the zips built successfully, regardless of submission
+# outcome. A final "Report submission status" step fails the job if
+# either store rejected, so you get the red X notification.
+#
 # Before first use, run `pnpm submit:init` locally (in extension/) to
 # write .env.submit, then copy the values from that file into your
 # GitHub repo secrets using the names listed below.
@@ -15,26 +21,13 @@
 #     CHROME_CLIENT_SECRET  — from Google Cloud Console OAuth
 #     CHROME_REFRESH_TOKEN  — from Google Cloud Console OAuth
 #   Firefox AMO:
-#     FIREFOX_EXTENSION_ID  — our gecko UUID: {a6e584fb-ab9a-4299-8be4-9beb56d39a03}
+#     FIREFOX_EXTENSION_ID  — our gecko UUID: {e5b3402e-127a-4eff-8529-77c5d34363f6}
 #     FIREFOX_JWT_ISSUER    — from AMO API keys page
 #     FIREFOX_JWT_SECRET    — from AMO API keys page
 
 name: Release
 
 on:
-  # Manual dispatch supports two recovery cases:
-  #   1. Re-submitting one store after a partial failure (e.g.,
-  #      Chrome rejected with ITEM_NOT_UPDATABLE while Firefox
-  #      accepted). Pick `chrome` or `firefox` for `target` to limit
-  #      the run; `both` matches the tag-triggered default.
-  #   2. Creating a missing GitHub Release after a tag-triggered run
-  #      where every store rejected (so post-submit was skipped on
-  #      old workflow definitions, or simply because the original tag
-  #      push itself didn't fire the workflow). Set `create_release`
-  #      to true. The tag name is derived from `extension/package.json`
-  #      when the workflow ran against a branch, or read directly from
-  #      `github.ref_name` when it ran against a tag ref.
-  # Tag-triggered runs leave both inputs unset and behave as before.
   workflow_dispatch:
     inputs:
       target:
@@ -49,29 +42,16 @@ on:
         description: "Also create the GitHub Release (tag dispatches do this automatically)"
         type: boolean
         default: false
-  # Pushing a tag like v1.0.1 also fires this — pairs naturally with
-  # the local version-bump → sign → tag flow we use before publishing.
-  # The version-vs-tag sanity-check below catches mismatches before
-  # any zip/build/test work happens.
   push:
     tags:
       - "v*"
 
-# Least-privilege: read the source for build/test/zip; write to
-# `contents` so softprops/action-gh-release can create the GitHub
-# Release and attach the extension zips. The job does NOT need
-# permissions for issues, PRs, packages, or actions — those stay
-# at their default no-access state.
 permissions:
   contents: write
 
 jobs:
   submit:
     runs-on: ubuntu-latest
-    # Store credentials hoisted to job level so they're defined once
-    # rather than duplicated on every step that needs them. `wxt submit`
-    # and `wxt-publish-extension` both read these from the environment
-    # directly — no .env.submit file is required on CI.
     env:
       CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
       CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
@@ -80,32 +60,12 @@ jobs:
       FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
       FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
       FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
-      # Optional submission flags. Each reads from a GitHub secret of
-      # the same name when set, falling back to the documented default
-      # otherwise. Listing the defaults inline keeps the submission
-      # posture (where it lands, whether it's reviewed, which AMO
-      # channel) visible in the workflow itself, while still allowing
-      # operators to override per-repo via secrets without editing this
-      # file.
-      #   CHROME_PUBLISH_TARGET=default     publish to public listing
-      #                                     (alt: "trustedTesters")
-      #   CHROME_SKIP_SUBMIT_REVIEW=false   submit for review (set the
-      #                                     secret to "true" to upload
-      #                                     as draft without review)
-      #   FIREFOX_CHANNEL=listed            public AMO channel
-      #                                     (alt: "unlisted" for self-host)
       CHROME_PUBLISH_TARGET: ${{ secrets.CHROME_PUBLISH_TARGET || 'default' }}
       CHROME_SKIP_SUBMIT_REVIEW: ${{ secrets.CHROME_SKIP_SUBMIT_REVIEW || 'false' }}
       FIREFOX_CHANNEL: ${{ secrets.FIREFOX_CHANNEL || 'listed' }}
     steps:
       - uses: actions/checkout@v6
 
-      # Tag-triggered runs MUST agree with extension/package.json's
-      # version. A mismatch here means someone tagged without bumping
-      # (or vice versa) — both stores reject re-uploads of an existing
-      # version, so we'd waste an entire ~5-minute pipeline discovering
-      # it at the `wxt submit` step. Fail fast instead. Manual
-      # workflow_dispatch runs skip this check (no tag to compare).
       - name: Verify tag matches extension/package.json version
         if: github.ref_type == 'tag'
         run: |
@@ -124,15 +84,6 @@ jobs:
           node-version: 22
           cache: "pnpm"
 
-      # --frozen-lockfile treats pnpm-lock.yaml as authoritative: if
-      # package.json and the lockfile disagree the install fails. We
-      # want the Store build to match exactly what was tested in the
-      # pre-push hook on a developer machine.
-      #
-      # --ignore-scripts skips the extension's postinstall hook. That
-      # hook is already guarded (no-ops when packages/logger/dist/
-      # doesn't exist yet), but being explicit here keeps the step
-      # order obvious: install → build logger → prepare → gates → zip.
       - name: Install dependencies (skip lifecycle scripts)
         run: pnpm install --frozen-lockfile --ignore-scripts
 
@@ -143,10 +94,6 @@ jobs:
         working-directory: extension
         run: pnpm exec wxt prepare
 
-      # Same gates the pre-push lefthook enforces locally. Running them
-      # here prevents a broken commit from slipping to the Chrome Web
-      # Store via a release that skips local verification (e.g., a
-      # --no-verify push, or a merge that accidentally bypasses hooks).
       - name: Typecheck
         run: pnpm -r typecheck
 
@@ -159,95 +106,51 @@ jobs:
       - name: Test
         run: pnpm -r test
 
-      # `pnpm zip` runs the per-browser zip scripts in sequence —
-      # Chrome first, then Firefox (which also produces the sources
-      # ZIP that AMO review requires). Each per-browser script runs
-      # `wxt zip` (which calls `wxt build` internally), so there is
-      # no separate `pnpm build` step; that would only produce the
-      # same artifacts twice.
       - name: Zip both extensions (chrome + firefox + sources)
         id: zip
         working-directory: extension
         run: pnpm zip
 
-      # Dry-run first. Verifies the store credentials reach publish-
-      # -extension correctly and the zip filenames scripts/submit.mjs
-      # discovered match what the stores expect. If a secret is mistyped
-      # or an extension ID changed, we fail here without consuming a
-      # real submission review slot.
+      # ── Store submissions ─────────────────────────────────────────
       #
-      # Tag-triggered runs always submit to both stores (inputs.target
-      # is unset, the case-default fires). Manual dispatch picks
-      # chrome / firefox / both; the matching --chrome-only or
-      # --firefox-only flag is forwarded to scripts/submit.mjs.
-      - name: Dry-run submission (verify credentials)
-        working-directory: extension
-        env:
-          TARGET: ${{ inputs.target || 'both' }}
-        run: |
-          case "$TARGET" in
-            chrome)  node scripts/submit.mjs --dry-run --chrome-only ;;
-            firefox) node scripts/submit.mjs --dry-run --firefox-only ;;
-            both)    pnpm submit:dry-run ;;
-            *)       echo "::error::Unknown target: $TARGET"; exit 1 ;;
-          esac
+      # Chrome and Firefox are independent steps with continue-on-error
+      # so one store's failure doesn't block the other. The TARGET input
+      # controls which stores to attempt; tag pushes default to both.
+      #
+      # steps.<id>.outcome gives the real result (success/failure)
+      # even when continue-on-error masks it as conclusion=success.
 
-      - name: Submit to stores
+      - name: Submit to Chrome Web Store
+        id: chrome_submit
+        if: ${{ inputs.target == 'chrome' || inputs.target == 'both' || inputs.target == '' }}
+        continue-on-error: true
         working-directory: extension
-        env:
-          TARGET: ${{ inputs.target || 'both' }}
-        run: |
-          case "$TARGET" in
-            chrome)  pnpm submit:chrome ;;
-            firefox) pnpm submit:firefox ;;
-            both)    pnpm submit ;;
-            *)       echo "::error::Unknown target: $TARGET"; exit 1 ;;
-          esac
+        run: node scripts/submit.mjs --chrome-only
 
-      # Post-submit steps run on `!cancelled() && steps.zip.outcome ==
-      # 'success'` so a partial submit failure (e.g., Chrome rejected
-      # with ITEM_NOT_UPDATABLE while Firefox went through) still
-      # produces the workflow artifacts and the GitHub Release. The
-      # zips were already built; the Release attaches them for
-      # sideloading regardless of store-side outcome.
+      - name: Submit to Firefox AMO
+        id: firefox_submit
+        if: ${{ inputs.target == 'firefox' || inputs.target == 'both' || inputs.target == '' }}
+        continue-on-error: true
+        working-directory: extension
+        run: node scripts/submit.mjs --firefox-only
+
+      # ── Post-submit: artifacts and GitHub Release ─────────────────
+      #
+      # These run as long as zips built successfully, regardless of
+      # whether store submissions succeeded. This ensures sideloadable
+      # zips are always available and the GitHub Release is created.
+
       - name: Upload artifacts
         if: ${{ !cancelled() && steps.zip.outcome == 'success' }}
         uses: actions/upload-artifact@v7
         with:
           name: extension-zips
-          # `extension/.output/` starts with a dot, so actions/glob
-          # (used by upload-artifact) treats it as hidden and skips
-          # everything inside unless include-hidden-files is true.
-          # softprops/action-gh-release uses different glob semantics
-          # and does not need this flag, which is why Create Release
-          # finds the same files even when this flag is omitted.
           include-hidden-files: true
           path: |
             extension/.output/*-chrome.zip
             extension/.output/*-firefox.zip
             extension/.output/*-sources.zip
 
-      # Extract the matching `## [<version>]` section from CHANGELOG.md
-      # for use as the GitHub Release body. The literal-prefix match
-      # via `index() == 1` sidesteps a gawk regex pitfall: `\[` inside
-      # an awk string is silently stripped to plain `[`, which turns
-      # `[1.1.0]` into a regex character class (matching one of `1`,
-      # `.`, `0`) instead of a literal-bracket match — so the regex
-      # form would never match the version header and would fail this
-      # step on every run. `index()` matches a literal substring,
-      # unambiguously. Walks from the header through to the next
-      # `## [` (or EOF). Failing the step when no section matches
-      # prevents shipping a release with empty notes — the most common
-      # cause is forgetting to land the changelog entry before tagging.
-      # Determine the tag name to release as. On tag-triggered runs,
-      # github.ref_name already is the tag (e.g., v1.1.0). On manual
-      # branch dispatches with create_release=true, fall back to the
-      # version in extension/package.json (e.g., "1.1.0" -> "v1.1.0").
-      # softprops/action-gh-release uses the tag if it exists in git
-      # and creates one at the current commit otherwise — for the
-      # branch-dispatch recovery case, the tag is expected to already
-      # exist (you are recreating a missing Release for an existing
-      # tagged version).
       - name: Determine release tag
         id: release_tag
         if: ${{ !cancelled() && steps.zip.outcome == 'success' && (github.ref_type == 'tag' || inputs.create_release) }}
@@ -266,22 +169,17 @@ jobs:
         run: |
           VERSION="${{ steps.release_tag.outputs.version }}"
           awk -v ver="$VERSION" '
-            BEGIN { hdr = "## [" ver "]" }
-            index($0, hdr) == 1 { found=1; print; next }
-            found && index($0, "## [") == 1 { exit }
+            BEGIN { hdr1 = "## " ver; hdr2 = "## [" ver "]" }
+            (index($0, hdr1) == 1 || index($0, hdr2) == 1) { found=1; print; next }
+            found && /^## / { exit }
             found { print }
           ' CHANGELOG.md > release-notes.md
           if [ ! -s release-notes.md ]; then
-            echo "::error::No CHANGELOG.md section found for version $VERSION. Add a '## [$VERSION] — YYYY-MM-DD' entry before tagging."
+            echo "::error::No CHANGELOG.md section found for version $VERSION. Add a '## $VERSION' entry before tagging."
             exit 1
           fi
           echo "Extracted $(wc -l < release-notes.md) lines of release notes for v$VERSION"
 
-      # Create the GitHub Release and attach the Chrome and Firefox
-      # zips for sideloading. Sources zip is included for transparency
-      # (it is what AMO reviewers receive). The default GITHUB_TOKEN
-      # — granted via `contents: write` above — has the minimal
-      # privilege needed; no PAT is required.
       - name: Create GitHub Release with sideloadable assets
         if: ${{ !cancelled() && steps.zip.outcome == 'success' && (github.ref_type == 'tag' || inputs.create_release) }}
         uses: softprops/action-gh-release@v3
@@ -296,3 +194,29 @@ jobs:
           fail_on_unmatched_files: true
           draft: false
           prerelease: false
+
+      # ── Final status ──────────────────────────────────────────────
+      #
+      # continue-on-error on the submit steps masks failures from the
+      # job status. This step checks the real outcomes and fails the
+      # job if either store rejected, so the Actions UI shows a red X
+      # and notifications fire. It runs after artifacts and the GitHub
+      # Release are safely created.
+
+      - name: Report submission status
+        if: ${{ !cancelled() && steps.zip.outcome == 'success' }}
+        run: |
+          CHROME="${{ steps.chrome_submit.outcome }}"
+          FIREFOX="${{ steps.firefox_submit.outcome }}"
+          echo "Chrome:  ${CHROME:-skipped}"
+          echo "Firefox: ${FIREFOX:-skipped}"
+          FAILED=0
+          if [ "$CHROME" = "failure" ]; then
+            echo "::error::Chrome Web Store submission failed"
+            FAILED=1
+          fi
+          if [ "$FIREFOX" = "failure" ]; then
+            echo "::error::Firefox AMO submission failed"
+            FAILED=1
+          fi
+          exit $FAILED

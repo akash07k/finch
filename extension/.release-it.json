@@ -23,6 +23,7 @@
   "hooks": {
     "before:init": ["pnpm -r typecheck", "pnpm -w lint", "pnpm -w lint:md", "pnpm -r test"],
     "after:bump": "echo Version bumped to ${version}",
+    "after:@release-it/conventional-changelog:beforeRelease": "node scripts/fix-changelog-header.mjs",
     "before:release": "node scripts/release-bump-root.mjs",
     "after:release": "echo === === === === === === === === === === === ===\necho Released ${name} v${version} locally.\necho Tag v${version} is signed and ready.\necho \necho Next step (when you are ready):\necho   git push --follow-tags origin main\necho \necho That tag push fires .github/workflows/release.yml\necho which submits to Chrome Web Store and Firefox AMO.\necho === === === === === === === === === === === ==="
   },
@@ -45,7 +46,7 @@
         ]
       },
       "infile": "../CHANGELOG.md",
-      "header": "# Changelog\n\nAll notable changes to Finch are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Finch adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Entries below v1.1.1 are released by hand; everything from v1.1.1 onward is generated from [Conventional Commits](https://conventionalcommits.org) by `release-it`.\n",
+      "header": "# Changelog\n\nAll notable changes to Finch are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Finch adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Entries are generated from [Conventional Commits](https://conventionalcommits.org) by `release-it`.\n",
       "ignoreRecommendedBump": false
     }
   }
