@@ -1,6 +1,8 @@
 # Finch: hear your browser
 
-Your browser does a hundred small things a day and tells you about almost none of them. Finch gives it a voice. It plays a short, distinct sound the moment something happens: open a tab and you hear a cue, finish a download and you hear another. Page loads, bookmarks, closed windows, a navigation that fails, each one its own brief, recognizable sound. It runs on Chrome, Microsoft Edge, Brave, Firefox, and other Chromium- and Gecko-based browsers. It's free and open source, and it's available now for everyone!
+Your browser does a hundred small things a day and tells you about almost none of them. Finch gives it a voice. It plays a short, distinct sound the moment something happens: open a tab and you hear a cue, finish a download and you hear another. Page loads, bookmarks, closed windows, a navigation that fails, each one its own brief, recognizable sound. The common cues work the second you install it, and from there you can tune every sound to your taste or silence it all with one keystroke.
+
+It runs just about everywhere: Chrome, Microsoft Edge, Brave, Firefox, and other Chromium- and Gecko-based browsers. Free, open source, and available now for everyone!
 
 I have been running it across my own machines and browsers for over a month and a half, and it feels rock solid for a public release.
 
