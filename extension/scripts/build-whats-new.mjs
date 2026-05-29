@@ -48,10 +48,12 @@ function readExtensionVersion() {
 
 /**
  * Extract the body of the section for the requested version from a
- * CHANGELOG.md string. Looks for `## [<version>]` and returns the
- * lines between that heading and the next `## [` heading (or EOF).
- * The heading line itself is not included — the page renders the
- * version into its own H1.
+ * CHANGELOG.md string. Matches both heading shapes release-it emits:
+ * `## [<version>](url) (date)` once a prior tag exists, and
+ * `## <version> (date)` for the very first release. Returns the lines
+ * between that heading and the next version heading (or EOF). The
+ * heading line itself is not included — the page renders the version
+ * into its own H1.
  *
  * Reference link definitions of the form `[id]: url` are filtered
  * out so they do not leak into the rendered HTML.
@@ -60,7 +62,10 @@ function readExtensionVersion() {
  */
 function extractVersionSection(changelog, version) {
   const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const startRe = new RegExp(`^##\\s+\\[${escaped}\\]`);
+  // release-it emits `## <version> (date)` for the first release (no
+  // prior tag) and `## [<version>](url) (date)` thereafter. Treat the
+  // opening bracket as optional and require a version boundary after.
+  const startRe = new RegExp(`^##\\s+\\[?${escaped}(?:\\]|\\s|$)`);
   const lines = changelog.split(/\r?\n/);
 
   let start = -1;
@@ -74,7 +79,7 @@ function extractVersionSection(changelog, version) {
 
   let end = lines.length;
   for (let i = start + 1; i < lines.length; i++) {
-    if (/^##\s+\[/.test(lines[i])) {
+    if (/^##\s+\[?\d/.test(lines[i])) {
       end = i;
       break;
     }
