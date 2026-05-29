@@ -5,7 +5,7 @@
   "license": "AGPL-3.0-only",
   "homepage": "https://github.com/akash07k/finch",
   "private": true,
-  "version": "0.1.2",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k -n chrome,firefox -c blue,green \"pnpm dev:chrome\" \"pnpm dev:firefox\"",
